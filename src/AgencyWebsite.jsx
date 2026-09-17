@@ -455,7 +455,7 @@ export default function AgencyWebsite() {
       </header>
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} id="hero"
+      <section id="hero"
         className="relative pt-16 pb-28 lg:pt-24 lg:pb-36 overflow-hidden bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern">
         {/* Soft ambient glow with GPU-composited radial gradient */}
         {shouldReduceMotion ? (
