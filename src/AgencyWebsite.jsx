@@ -170,6 +170,377 @@ function ElegantTechBackground({ darkMode }) {
   );
 }
 
+// ── Center Loading Splash Screen with Authentic Logo Dots Orbit ────────────
+function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
+  const [displayProgress, setDisplayProgress] = useState(0);
+
+  // Motion values for the exact 3 logo dots
+  const dot0X = useMotionValue(37);
+  const dot0Y = useMotionValue(62);
+  const dot0Scale = useMotionValue(1);
+
+  const dot1X = useMotionValue(95);
+  const dot1Y = useMotionValue(45);
+  const dot1Scale = useMotionValue(1);
+
+  const dot2X = useMotionValue(153);
+  const dot2Y = useMotionValue(31);
+  const dot2Scale = useMotionValue(1);
+
+  // Orbit halo ring visual properties
+  const orbitOpacity = useMotionValue(0);
+  const orbitDashOffset = useMotionValue(0);
+
+  const startTimeRef = useRef(null);
+  const finishedRef = useRef(false);
+
+  // Logo geometric constants (matching SVG viewBox -25 -10 240 260)
+  const CENTER_X = 95;
+  const CENTER_Y = 130;
+  const ORBIT_R = 94;
+
+  // Natural home positions of the 3 dots on top of the bars
+  const HOME_DOTS = [
+    { x: 37, y: 62 },  // Dot 0 (Left bar: higher bottom / elevated)
+    { x: 95, y: 45 },  // Dot 1 (Middle bar)
+    { x: 153, y: 31 }, // Dot 2 (Right bar: green)
+  ];
+
+  // Starting departure angles on the orbit circle (radians)
+  const BASE_ANGLES = [
+    Math.PI * 1.15,
+    Math.PI * 1.15 + (2 * Math.PI) / 3,
+    Math.PI * 1.15 + (4 * Math.PI) / 3,
+  ];
+
+  const DOCK_TIMELINE = [
+    { start: 1.80, end: 2.15 },
+    { start: 2.25, end: 2.60 },
+    { start: 2.70, end: 3.05 },
+  ];
+  const OMEGA = 8.2;
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  useAnimationFrame((time) => {
+    if (finishedRef.current) return;
+    if (startTimeRef.current === null) {
+      startTimeRef.current = time;
+    }
+
+    const elapsed = (time - startTimeRef.current) / 1000;
+
+    const calcDot = (i) => {
+      const home = HOME_DOTS[i];
+      const baseAngle = BASE_ANGLES[i];
+      const dockStart = DOCK_TIMELINE[i].start;
+      const dockEnd = DOCK_TIMELINE[i].end;
+
+      if (elapsed < 0.5) {
+        return { x: home.x, y: home.y, scale: 1 };
+      }
+
+      if (elapsed < 0.85) {
+        const u = (elapsed - 0.5) / 0.35;
+        const ease = u * u * (3 - 2 * u);
+        const targetX = CENTER_X + ORBIT_R * Math.cos(baseAngle);
+        const targetY = CENTER_Y + ORBIT_R * Math.sin(baseAngle);
+        return {
+          x: (1 - ease) * home.x + ease * targetX,
+          y: (1 - ease) * home.y + ease * targetY,
+          scale: 1 + ease * 0.12,
+        };
+      }
+
+      if (elapsed < dockStart) {
+        const currentAngle = baseAngle + OMEGA * (elapsed - 0.85);
+        return {
+          x: CENTER_X + ORBIT_R * Math.cos(currentAngle),
+          y: CENTER_Y + ORBIT_R * Math.sin(currentAngle),
+          scale: 1.12,
+        };
+      }
+
+      if (elapsed < dockEnd) {
+        const leaveAngle = baseAngle + OMEGA * (dockStart - 0.85);
+        const startX = CENTER_X + ORBIT_R * Math.cos(leaveAngle);
+        const startY = CENTER_Y + ORBIT_R * Math.sin(leaveAngle);
+
+        const u = (elapsed - dockStart) / (dockEnd - dockStart);
+        const ease = 1 - Math.pow(1 - u, 3);
+        return {
+          x: (1 - ease) * startX + ease * home.x,
+          y: (1 - ease) * startY + ease * home.y,
+          scale: 1.12 - ease * 0.12,
+        };
+      }
+
+      const timeSinceLand = elapsed - dockEnd;
+      let bounce = 0;
+      if (timeSinceLand < 0.28) {
+        bounce = Math.sin((timeSinceLand / 0.28) * Math.PI) * 0.24;
+      }
+      return {
+        x: home.x,
+        y: home.y,
+        scale: 1 + bounce,
+      };
+    };
+
+    const s0 = calcDot(0);
+    dot0X.set(s0.x);
+    dot0Y.set(s0.y);
+    dot0Scale.set(s0.scale);
+
+    const s1 = calcDot(1);
+    dot1X.set(s1.x);
+    dot1Y.set(s1.y);
+    dot1Scale.set(s1.scale);
+
+    const s2 = calcDot(2);
+    dot2X.set(s2.x);
+    dot2Y.set(s2.y);
+    dot2Scale.set(s2.scale);
+
+    orbitDashOffset.set(elapsed * 90);
+    let ringOpacity = 0;
+    if (elapsed < 0.5) {
+      ringOpacity = 0;
+    } else if (elapsed < 0.85) {
+      ringOpacity = ((elapsed - 0.5) / 0.35) * 0.85;
+    } else if (elapsed < DOCK_TIMELINE[0].end) {
+      ringOpacity = 0.85;
+    } else if (elapsed < DOCK_TIMELINE[1].end) {
+      ringOpacity = 0.55;
+    } else if (elapsed < DOCK_TIMELINE[2].end) {
+      ringOpacity = 0.3;
+    } else {
+      ringOpacity = 0;
+    }
+    orbitOpacity.set(ringOpacity);
+
+    let prog = 0;
+    if (elapsed < 0.5) {
+      prog = Math.floor((elapsed / 0.5) * 15);
+    } else if (elapsed < 0.85) {
+      prog = 15 + Math.floor(((elapsed - 0.5) / 0.35) * 12);
+    } else if (elapsed < DOCK_TIMELINE[0].end) {
+      prog = 27 + Math.floor(((elapsed - 0.85) / (DOCK_TIMELINE[0].end - 0.85)) * 38);
+    } else if (elapsed < DOCK_TIMELINE[1].end) {
+      prog = 65 + Math.floor(((elapsed - DOCK_TIMELINE[0].end) / (DOCK_TIMELINE[1].end - DOCK_TIMELINE[0].end)) * 18);
+    } else if (elapsed < DOCK_TIMELINE[2].end) {
+      prog = 83 + Math.floor(((elapsed - DOCK_TIMELINE[1].end) / (DOCK_TIMELINE[2].end - DOCK_TIMELINE[1].end)) * 17);
+    } else {
+      prog = 100;
+    }
+    setDisplayProgress(Math.min(prog, 100));
+
+    if (elapsed >= 3.35) {
+      if (!finishedRef.current) {
+        finishedRef.current = true;
+        setDisplayProgress(100);
+        onFinish();
+      }
+    }
+  });
+
+  const navyColor = darkMode ? "#FFFFFF" : "#141C3C";
+  const greenColor = "var(--brand, #21C87A)";
+  const greenDotColor = darkMode ? "var(--brand, #21C87A)" : "#0D3B4C";
+
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden select-none transition-colors duration-500 ${
+        darkMode ? "bg-[#090E1A] text-white" : "bg-[#F8FAFC] text-[#101828]"
+      }`}
+    >
+      <div
+        className={`absolute w-[540px] h-[540px] rounded-full blur-[140px] pointer-events-none transition-colors duration-500 ${
+          darkMode ? "bg-[var(--brand)]/15" : "bg-[var(--brand)]/12"
+        }`}
+      />
+
+      <div className="relative w-[280px] h-[280px] sm:w-[330px] sm:h-[330px] flex items-center justify-center mb-6">
+        <motion.div
+          animate={{ scale: [0.94, 1.08, 0.94], opacity: [0.35, 0.65, 0.35] }}
+          transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+          className="absolute w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[var(--brand)]/25 blur-2xl pointer-events-none"
+        />
+
+        <svg
+          viewBox="-25 -10 240 260"
+          className="w-full h-full object-contain relative z-10"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <filter id="dot-orbit-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor={darkMode ? "#21C87A" : "#1BB36B"} floodOpacity="0.6" />
+            </filter>
+            <filter id="navy-dot-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={darkMode ? "#FFFFFF" : "#141C3C"} floodOpacity="0.4" />
+            </filter>
+          </defs>
+
+          <motion.circle
+            cx={CENTER_X}
+            cy={CENTER_Y}
+            r={ORBIT_R}
+            fill="none"
+            stroke="var(--brand, #21C87A)"
+            strokeWidth="1.8"
+            strokeDasharray="8 10"
+            style={{
+              opacity: orbitOpacity,
+              strokeDashoffset: orbitDashOffset,
+            }}
+          />
+          <motion.circle
+            cx={CENTER_X}
+            cy={CENTER_Y}
+            r={ORBIT_R + 22}
+            fill="none"
+            stroke="var(--brand, #21C87A)"
+            strokeWidth="1"
+            strokeDasharray="4 12"
+            style={{
+              opacity: orbitOpacity,
+            }}
+          />
+
+          <motion.g
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.1 }}
+          >
+            <rect
+              x={15}
+              y={98}
+              width={44}
+              height={113}
+              rx={22}
+              fill={navyColor}
+              className="transition-colors duration-500"
+            />
+            <rect
+              x={73}
+              y={81}
+              width={44}
+              height={144}
+              rx={22}
+              fill={navyColor}
+              className="transition-colors duration-500"
+            />
+            <rect
+              x={131}
+              y={65}
+              width={44}
+              height={160}
+              rx={22}
+              fill={greenColor}
+            />
+          </motion.g>
+
+          <motion.circle
+            cx={dot0X}
+            cy={dot0Y}
+            r={17}
+            fill={navyColor}
+            style={{
+              scale: dot0Scale,
+              originX: "50%",
+              originY: "50%",
+            }}
+            filter="url(#navy-dot-glow)"
+            className="transition-colors duration-500"
+          />
+
+          <motion.circle
+            cx={dot1X}
+            cy={dot1Y}
+            r={17}
+            fill={navyColor}
+            style={{
+              scale: dot1Scale,
+              originX: "50%",
+              originY: "50%",
+            }}
+            filter="url(#navy-dot-glow)"
+            className="transition-colors duration-500"
+          />
+
+          <motion.circle
+            cx={dot2X}
+            cy={dot2Y}
+            r={17}
+            fill={greenDotColor}
+            style={{
+              scale: dot2Scale,
+              originX: "50%",
+              originY: "50%",
+            }}
+            filter="url(#dot-orbit-glow)"
+            className="transition-colors duration-500"
+          />
+        </svg>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.5 }}
+        className="text-center mb-6 z-10"
+      >
+        <h2
+          className={`font-heading font-black text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2 ${
+            darkMode ? "text-white" : "text-[#101828]"
+          }`}
+        >
+          <span>{lang === "ar" ? "شغال" : "Shaghal"}</span>
+          <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-ping" />
+        </h2>
+        <p
+          className={`text-xs sm:text-sm font-bold tracking-widest uppercase mt-1 text-[var(--brand)]`}
+        >
+          {lang === "ar" ? "استوديو الأنظمة الرقمية" : "Digital Systems Studio"}
+        </p>
+      </motion.div>
+
+      <div className="w-52 sm:w-60 z-10 flex flex-col items-center gap-2">
+        <div
+          className={`w-full h-1.5 rounded-full overflow-hidden p-[1px] relative border transition-colors duration-500 ${
+            darkMode ? "bg-slate-800/80 border-white/10" : "bg-slate-200/90 border-slate-300/60"
+          }`}
+        >
+          <div
+            className="h-full rounded-full brand-green-gradient shadow-[0_0_12px_rgba(var(--brand-rgb),0.8)] transition-[width] duration-75 ease-out"
+            style={{ width: `${displayProgress}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between w-full text-[11px] font-mono font-bold px-1">
+          <span className="text-[var(--brand)]">
+            {displayProgress < 100
+              ? (lang === "ar" ? "جاري تهيئة الأنظمة..." : "Initializing systems...")
+              : (lang === "ar" ? "اكتملت التهيئة ✓" : "Ready ✓")}
+          </span>
+          <span className={darkMode ? "text-white" : "text-[#101828]"}>
+            {displayProgress}%
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Process Line-Art Icons ──────────────────────────────────────────────────
 const PROCESS_ICONS = [Compass, FileCheck2, Cpu, MonitorCheck];
 
@@ -177,7 +548,7 @@ const SERVICE_ICONS = { pos: Monitor, warehouse: Warehouse, clinic: Stethoscope 
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function AgencyWebsite() {
-  const [isLoading,   setIsLoading]  = useState(false);
+  const [isLoading,   setIsLoading]  = useState(true);
   const [lang,       setLang]       = useState(() => localStorage.getItem("Aura_lang") || "ar");
   const [darkMode,   setDarkMode]   = useState(() => localStorage.getItem("Aura_theme") === "dark");
   const [theme,      setTheme]      = useState(() => localStorage.getItem("shaghal_theme") || "ledger");
@@ -318,6 +689,18 @@ export default function AgencyWebsite() {
     <div className={`min-h-screen font-sans transition-colors duration-300 relative ${
       darkMode ? "bg-[#101828] text-slate-100" : "bg-[var(--bg)] text-[var(--ink)]"
     }`} dir={t.dir}>
+
+      {/* ── Initial Splash / Loading Screen ──────────────────────── */}
+      <AnimatePresence>
+        {isLoading && (
+          <LogoLoaderSplash
+            onFinish={() => setIsLoading(false)}
+            isRTL={isRTL}
+            lang={lang}
+            darkMode={darkMode}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Background Cyber Scan Light & Constellation Dots ───── */}
       <ElegantTechBackground darkMode={darkMode} />
