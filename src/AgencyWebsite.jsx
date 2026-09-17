@@ -557,12 +557,6 @@ export default function AgencyWebsite() {
   const { scrollYProgress: pageScroll } = useScroll();
   const scrollProgressSpring = useSpring(pageScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  // Hero scroll-linked 3D perspective & scale
-  const heroRef = useRef(null);
-  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroRotateX = useTransform(heroScroll, [0, 0.5], [14, 0]);
-  const heroScale   = useTransform(heroScroll, [0, 0.5], [0.93, 1.02]);
-  const heroY       = useSpring(useTransform(heroScroll, [0, 1], [0, 80]),  { stiffness: 80, damping: 20 });
 
   // Theme & Dark-mode & Lang sync
   useEffect(() => {
@@ -904,10 +898,9 @@ export default function AgencyWebsite() {
               </div>
             </motion.div>
 
-            {/* Hero Mockup — 3D perspective scroll-linked level-out */}
-            <div className="perspective-1200 mb-16">
-              <motion.div
-                style={{ rotateX: heroRotateX, scale: heroScale, y: heroY, transformStyle: "preserve-3d" }}
+            {/* Hero Mockup — Simple, Clean & High Performance */}
+            <div className="mb-16">
+              <div
                 className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden border border-[var(--border)]
                   dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900 p-3 sm:p-5"
               >
@@ -918,10 +911,10 @@ export default function AgencyWebsite() {
                     className="w-full h-full object-cover opacity-80" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#101828] via-[#101828]/25 to-transparent" />
 
-                  {/* Floating Live Badges with independent continuous gentle float */}
+                  {/* Feature Badges */}
                   <div className="absolute bottom-6 right-6 left-6 flex flex-wrap items-end justify-between gap-4">
                     <div className="flex items-center gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl animate-gentle-float">
+                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
                       <div className="mercury-line-art-badge w-10 h-10">
                         <Database className="w-5 h-5 text-[var(--brand)]" />
                       </div>
@@ -936,8 +929,7 @@ export default function AgencyWebsite() {
                     </div>
 
                     <div className="hidden sm:flex items-center gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl animate-gentle-float"
-                        style={{ animationDelay: "1.4s" }}>
+                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
                       <Wifi className="w-5 h-5 text-[var(--brand)]" />
                       <span className="text-xs font-bold text-[var(--ink)] dark:text-white">
                         {isRTL ? "تزامن فوري بين الفروع" : "Instant Multi-Branch Sync"}
@@ -945,8 +937,7 @@ export default function AgencyWebsite() {
                     </div>
 
                     <div className="hidden md:flex items-center gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl animate-gentle-float"
-                        style={{ animationDelay: "2.6s" }}>
+                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
                       <BarChart3 className="w-5 h-5 text-[var(--brand)]" />
                       <span className="text-xs font-bold text-[var(--ink)] dark:text-white">
                         {isRTL ? "تقارير لحظية وذكية" : "Real-Time BI Analytics"}
@@ -954,7 +945,7 @@ export default function AgencyWebsite() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* 3 System Spotlight Cards */}
