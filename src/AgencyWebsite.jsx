@@ -116,178 +116,8 @@ function SpotlightCard({ children, className = "", onClick, ...props }) {
   );
 }
 
-// ── Animated Interactive Particle Network Canvas (High Performance) ───────
-function AnimatedBackground({ theme, darkMode, shouldReduceMotion }) {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    if (shouldReduceMotion) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return;
-
-    let animationFrameId;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    let isScrolling = false;
-    let scrollTimer = null;
-
-    const handleResize = () => {
-      if (!canvas) return;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize, { passive: true });
-
-    // Passive scroll detection to prioritize 60/120fps scrolling
-    const handleScroll = () => {
-      isScrolling = true;
-      if (scrollTimer) clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => {
-        isScrolling = false;
-      }, 120);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    // Mouse tracking
-    const mouse = { x: -1000, y: -1000, radius: 150, radiusSq: 22500 };
-    const handleMouseMove = (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    };
-    const handleMouseLeave = () => {
-      mouse.x = -1000;
-      mouse.y = -1000;
-    };
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("mouseleave", handleMouseLeave, { passive: true });
-
-    // Optimal particle count (max 42 on large screens, 20 on small)
-    const particleCount = width < 768 ? 20 : Math.min(Math.floor((width * height) / 32000), 42);
-    const particles = [];
-
-    const isLedger = theme === "ledger";
-    const rgbStr = darkMode
-      ? (isLedger ? "45, 212, 191" : "33, 200, 122")
-      : (isLedger ? "15, 92, 82" : "33, 200, 122");
-    
-    const dotFill = `rgba(${rgbStr}, ${darkMode ? 0.6 : 0.45})`;
-    const lineBaseAlpha = darkMode ? 0.22 : 0.14;
-    const lineStroke = `rgba(${rgbStr}, ${lineBaseAlpha})`;
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.45,
-        vy: (Math.random() - 0.5) * 0.45,
-        radius: Math.random() * 1.6 + 1.2,
-      });
-    }
-
-    const maxDist = 135;
-    const maxDistSq = maxDist * maxDist;
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      // 1. Update positions
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0) p.x = width;
-        else if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        else if (p.y > height) p.y = 0;
-
-        // Mouse gentle repulsion (squared distance check)
-        const dxMouse = mouse.x - p.x;
-        const dyMouse = mouse.y - p.y;
-        const distMouseSq = dxMouse * dxMouse + dyMouse * dyMouse;
-        if (distMouseSq < mouse.radiusSq && distMouseSq > 1) {
-          const distMouse = Math.sqrt(distMouseSq);
-          const force = (mouse.radius - distMouse) / mouse.radius;
-          p.x -= (dxMouse / distMouse) * force * 1.5;
-          p.y -= (dyMouse / distMouse) * force * 1.5;
-        }
-      }
-
-      // 2. Batch render all connection lines in ONE single stroke call
-      if (!isScrolling) {
-        ctx.beginPath();
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          for (let j = i + 1; j < particles.length; j++) {
-            const p2 = particles[j];
-            const dx = p.x - p2.x;
-            const dy = p.y - p2.y;
-            const distSq = dx * dx + dy * dy;
-
-            if (distSq < maxDistSq) {
-              ctx.moveTo(p.x, p.y);
-              ctx.lineTo(p2.x, p2.y);
-            }
-          }
-        }
-        ctx.strokeStyle = lineStroke;
-        ctx.lineWidth = 0.85;
-        ctx.stroke();
-      }
-
-      // 3. Batch render all dots in ONE single fill call
-      ctx.beginPath();
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        ctx.moveTo(p.x + p.radius, p.y);
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      }
-      ctx.fillStyle = dotFill;
-      ctx.fill();
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    // Pause canvas loop when tab is hidden
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        cancelAnimationFrame(animationFrameId);
-      } else {
-        animationFrameId = requestAnimationFrame(render);
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      if (scrollTimer) clearTimeout(scrollTimer);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [theme, darkMode, shouldReduceMotion]);
-
-  if (shouldReduceMotion) return null;
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[2] opacity-85"
-      style={{ width: "100vw", height: "100vh", willChange: "transform" }}
-    />
-  );
+function AnimatedBackground() {
+  return null;
 }
 
 // ── Center Loading Splash Screen with Authentic Logo Dots Orbit ────────────
@@ -701,10 +531,10 @@ const SERVICE_ICONS = { pos: Monitor, warehouse: Warehouse, clinic: Stethoscope 
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function AgencyWebsite() {
-  const [isLoading,   setIsLoading]  = useState(true);
+  const [isLoading,   setIsLoading]  = useState(false);
   const [lang,       setLang]       = useState(() => localStorage.getItem("Aura_lang") || "ar");
   const [darkMode,   setDarkMode]   = useState(() => localStorage.getItem("Aura_theme") === "dark");
-  const [theme,      setTheme]      = useState(() => localStorage.getItem("shaghal_theme") || "mercury");
+  const [theme,      setTheme]      = useState(() => localStorage.getItem("shaghal_theme") || "ledger");
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [filter,     setFilter]     = useState("all");
   const [openFaq,    setOpenFaq]    = useState(0);
@@ -922,20 +752,6 @@ export default function AgencyWebsite() {
 
           {/* Controls */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* Theme Toggle Button (Mercury <-> Ledger) */}
-            <button
-              onClick={() => setTheme(prev => prev === "mercury" ? "ledger" : "mercury")}
-              className={`p-2.5 rounded-full border transition-all focus-visible:ring-2 focus-visible:ring-[var(--brand)] ${
-                theme === "ledger"
-                  ? "bg-[var(--soft)] border-[var(--brand)] text-[var(--brand)] font-bold"
-                  : "hover:bg-slate-200/60 dark:hover:bg-slate-800 border-transparent text-[var(--ink)] dark:text-slate-200"
-              }`}
-              title={lang === "ar" ? (theme === "mercury" ? "التبديل إلى نمط الدفتر (Ledger)" : "التبديل إلى نمط ميركوري (Mercury)") : (theme === "mercury" ? "Switch to Ledger Theme" : "Switch to Mercury Theme")}
-              aria-label="Toggle theme style"
-            >
-              <Palette className="w-4 h-4" />
-            </button>
-
             {/* Dark Mode Toggle */}
             <button onClick={() => setDarkMode(!darkMode)}
               className="p-2.5 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
@@ -965,18 +781,6 @@ export default function AgencyWebsite() {
 
           {/* Mobile */}
           <div className="flex lg:hidden items-center gap-2">
-            <button
-              onClick={() => setTheme(prev => prev === "mercury" ? "ledger" : "mercury")}
-              className={`p-2 rounded-full border transition-all ${
-                theme === "ledger"
-                  ? "bg-[var(--soft)] border-[var(--brand)] text-[var(--brand)]"
-                  : "bg-slate-200/60 dark:bg-slate-800 border-transparent text-[var(--ink)] dark:text-slate-200"
-              }`}
-              title="Toggle theme"
-              aria-label="Toggle theme style"
-            >
-              <Palette className="w-4 h-4" />
-            </button>
             <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full bg-slate-200/60 dark:bg-slate-800" aria-label="Toggle dark mode">
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </button>
@@ -1012,20 +816,6 @@ export default function AgencyWebsite() {
                   </a>
                 ))}
                 
-                {/* Theme Switcher inside mobile drawer */}
-                <div className="flex items-center justify-between py-2 border-b border-[var(--border)] dark:border-slate-800">
-                  <span className="text-sm font-bold flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-[var(--brand)]" />
-                    {lang === "ar" ? "نمط التصميم:" : "Design Theme:"}
-                  </span>
-                  <button
-                    onClick={() => setTheme(prev => prev === "mercury" ? "ledger" : "mercury")}
-                    className="px-3 py-1 rounded-full bg-[var(--soft)] text-[var(--brand)] text-xs font-bold border border-[var(--brand)]/30"
-                  >
-                    {theme === "mercury" ? "Mercury" : "Ledger"}
-                  </button>
-                </div>
-
                 <a href="#contact" onClick={() => setMenuOpen(false)}
                   className="mt-2 w-full text-center py-3.5 rounded-full text-white font-heading font-bold brand-green-gradient">
                   {t.cta}
