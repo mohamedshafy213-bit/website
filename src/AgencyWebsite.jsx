@@ -116,411 +116,57 @@ function SpotlightCard({ children, className = "", onClick, ...props }) {
   );
 }
 
-function AnimatedBackground() {
-  return null;
-}
-
-// ── Center Loading Splash Screen with Authentic Logo Dots Orbit ────────────
-function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
-  const [displayProgress, setDisplayProgress] = useState(0);
-
-  // Motion values for the exact 3 logo dots
-  const dot0X = useMotionValue(37);
-  const dot0Y = useMotionValue(62);
-  const dot0Scale = useMotionValue(1);
-
-  const dot1X = useMotionValue(95);
-  const dot1Y = useMotionValue(45);
-  const dot1Scale = useMotionValue(1);
-
-  const dot2X = useMotionValue(153);
-  const dot2Y = useMotionValue(31);
-  const dot2Scale = useMotionValue(1);
-
-  // Orbit halo ring visual properties
-  const orbitOpacity = useMotionValue(0);
-  const orbitDashOffset = useMotionValue(0);
-
-  const startTimeRef = useRef(null);
-  const finishedRef = useRef(false);
-
-  // Logo geometric constants (matching SVG viewBox -25 -10 240 260)
-  const CENTER_X = 95;
-  const CENTER_Y = 130;
-  const ORBIT_R = 94;
-
-  // Natural home positions of the 3 dots on top of the bars
-  const HOME_DOTS = [
-    { x: 37, y: 62 },  // Dot 0 (Left bar: higher bottom / elevated)
-    { x: 95, y: 45 },  // Dot 1 (Middle bar)
-    { x: 153, y: 31 }, // Dot 2 (Right bar: green)
-  ];
-
-  // Starting departure angles on the orbit circle (radians)
-  // Perfectly spaced at 120° intervals around the circle
-  const BASE_ANGLES = [
-    Math.PI * 1.15,                     // ~207° (smooth tangent from Left home)
-    Math.PI * 1.15 + (2 * Math.PI) / 3, // ~327° (smooth tangent from Right home)
-    Math.PI * 1.15 + (4 * Math.PI) / 3, // ~87°  (smooth tangent from Mid home)
-  ];
-
-  // Individual staggered docking timeline for each dot (one-by-one)
-  // Dot 0 (Left) docks first, then Dot 1 (Middle) docks second, then Dot 2 (Right Green) docks last!
-  const DOCK_TIMELINE = [
-    { start: 1.80, end: 2.15 }, // Dot 0: leaves orbit at 1.80s, locks at 2.15s
-    { start: 2.25, end: 2.60 }, // Dot 1: leaves orbit at 2.25s, locks at 2.60s
-    { start: 2.70, end: 3.05 }, // Dot 2: leaves orbit at 2.70s, locks at 3.05s
-  ];
-  const OMEGA = 8.2; // Orbit angular speed (rad/sec)
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-
-  useAnimationFrame((time) => {
-    if (finishedRef.current) return;
-    if (startTimeRef.current === null) {
-      startTimeRef.current = time;
-    }
-
-    const elapsed = (time - startTimeRef.current) / 1000; // time in seconds
-
-    // Calculate independent continuous state for each dot
-    const calcDot = (i) => {
-      const home = HOME_DOTS[i];
-      const baseAngle = BASE_ANGLES[i];
-      const dockStart = DOCK_TIMELINE[i].start;
-      const dockEnd = DOCK_TIMELINE[i].end;
-
-      // 1. Initial rest before liftoff (0.0s -> 0.5s)
-      if (elapsed < 0.5) {
-        return { x: home.x, y: home.y, scale: 1 };
-      }
-
-      // 2. Liftoff from bar into orbit (0.5s -> 0.85s)
-      if (elapsed < 0.85) {
-        const u = (elapsed - 0.5) / 0.35;
-        const ease = u * u * (3 - 2 * u);
-        const targetX = CENTER_X + ORBIT_R * Math.cos(baseAngle);
-        const targetY = CENTER_Y + ORBIT_R * Math.sin(baseAngle);
-        return {
-          x: (1 - ease) * home.x + ease * targetX,
-          y: (1 - ease) * home.y + ease * targetY,
-          scale: 1 + ease * 0.12,
-        };
-      }
-
-      // 3. Orbiting actively around the logo (0.85s -> dockStart)
-      if (elapsed < dockStart) {
-        const currentAngle = baseAngle + OMEGA * (elapsed - 0.85);
-        return {
-          x: CENTER_X + ORBIT_R * Math.cos(currentAngle),
-          y: CENTER_Y + ORBIT_R * Math.sin(currentAngle),
-          scale: 1.12,
-        };
-      }
-
-      // 4. Staggered departure from orbit to its home bar (dockStart -> dockEnd)
-      if (elapsed < dockEnd) {
-        const leaveAngle = baseAngle + OMEGA * (dockStart - 0.85);
-        const startX = CENTER_X + ORBIT_R * Math.cos(leaveAngle);
-        const startY = CENTER_Y + ORBIT_R * Math.sin(leaveAngle);
-
-        const u = (elapsed - dockStart) / (dockEnd - dockStart);
-        const ease = 1 - Math.pow(1 - u, 3); // Cubic ease-out
-        return {
-          x: (1 - ease) * startX + ease * home.x,
-          y: (1 - ease) * startY + ease * home.y,
-          scale: 1.12 - ease * 0.12,
-        };
-      }
-
-      // 5. Docked at home with satisfying impact bounce
-      const timeSinceLand = elapsed - dockEnd;
-      let bounce = 0;
-      if (timeSinceLand < 0.28) {
-        bounce = Math.sin((timeSinceLand / 0.28) * Math.PI) * 0.24;
-      }
-      return {
-        x: home.x,
-        y: home.y,
-        scale: 1 + bounce,
-      };
-    };
-
-    // Update each dot's motion values
-    const s0 = calcDot(0);
-    dot0X.set(s0.x);
-    dot0Y.set(s0.y);
-    dot0Scale.set(s0.scale);
-
-    const s1 = calcDot(1);
-    dot1X.set(s1.x);
-    dot1Y.set(s1.y);
-    dot1Scale.set(s1.scale);
-
-    const s2 = calcDot(2);
-    dot2X.set(s2.x);
-    dot2Y.set(s2.y);
-    dot2Scale.set(s2.scale);
-
-    // Orbit ring rotation and adaptive opacity as dots dock
-    orbitDashOffset.set(elapsed * 90);
-    let ringOpacity = 0;
-    if (elapsed < 0.5) {
-      ringOpacity = 0;
-    } else if (elapsed < 0.85) {
-      ringOpacity = ((elapsed - 0.5) / 0.35) * 0.85;
-    } else if (elapsed < DOCK_TIMELINE[0].end) {
-      ringOpacity = 0.85;
-    } else if (elapsed < DOCK_TIMELINE[1].end) {
-      ringOpacity = 0.55;
-    } else if (elapsed < DOCK_TIMELINE[2].end) {
-      ringOpacity = 0.3;
-    } else {
-      ringOpacity = 0;
-    }
-    orbitOpacity.set(ringOpacity);
-
-    // Progress bar calculations
-    let prog = 0;
-    if (elapsed < 0.5) {
-      prog = Math.floor((elapsed / 0.5) * 15);
-    } else if (elapsed < 0.85) {
-      prog = 15 + Math.floor(((elapsed - 0.5) / 0.35) * 12);
-    } else if (elapsed < DOCK_TIMELINE[0].end) {
-      prog = 27 + Math.floor(((elapsed - 0.85) / (DOCK_TIMELINE[0].end - 0.85)) * 38);
-    } else if (elapsed < DOCK_TIMELINE[1].end) {
-      prog = 65 + Math.floor(((elapsed - DOCK_TIMELINE[0].end) / (DOCK_TIMELINE[1].end - DOCK_TIMELINE[0].end)) * 18);
-    } else if (elapsed < DOCK_TIMELINE[2].end) {
-      prog = 83 + Math.floor(((elapsed - DOCK_TIMELINE[1].end) / (DOCK_TIMELINE[2].end - DOCK_TIMELINE[1].end)) * 17);
-    } else {
-      prog = 100;
-    }
-    setDisplayProgress(Math.min(prog, 100));
-
-    // Finish when all dots have docked and settled
-    if (elapsed >= 3.35) {
-      if (!finishedRef.current) {
-        finishedRef.current = true;
-        setDisplayProgress(100);
-        onFinish();
-      }
-    }
-  });
-
-  // Palette according to Dark / Light theme
-  const navyColor = darkMode ? "#FFFFFF" : "#141C3C";
-  const greenColor = "var(--brand, #21C87A)";
-  const greenDotColor = darkMode ? "var(--brand, #21C87A)" : "#0D3B4C";
-
+// ── Elegant Ambient Scan Light & Constellation Dots (Ultra-Light GPU Accelerated) ───
+function ElegantTechBackground({ darkMode }) {
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
-      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden select-none transition-colors duration-500 ${
-        darkMode ? "bg-[#090E1A] text-white" : "bg-[#F8FAFC] text-[#101828]"
-      }`}
-    >
-      {/* Ambient center radial glow */}
+    <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden" aria-hidden="true">
+      {/* 1. Subtle Cyan / Blue Laser Scan Light Beam */}
+      <div className="cyber-scan-beam" />
+
+      {/* 2. Ambient Soft Glow Orbs */}
       <div
-        className={`absolute w-[540px] h-[540px] rounded-full blur-[140px] pointer-events-none transition-colors duration-500 ${
-          darkMode ? "bg-[var(--brand)]/15" : "bg-[var(--brand)]/12"
-        }`}
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[850px] h-[450px] rounded-full blur-[120px] opacity-25 dark:opacity-35 pointer-events-none"
+        style={{
+          background: darkMode
+            ? "radial-gradient(ellipse at center, rgba(45, 212, 191, 0.25) 0%, rgba(56, 189, 248, 0.15) 50%, transparent 70%)"
+            : "radial-gradient(ellipse at center, rgba(15, 92, 82, 0.12) 0%, rgba(56, 189, 248, 0.08) 50%, transparent 70%)",
+        }}
       />
 
-      {/* Main Logo & Orbit Stage */}
-      <div className="relative w-[280px] h-[280px] sm:w-[330px] sm:h-[330px] flex items-center justify-center mb-6">
-        {/* Central Pulse Ambient Halo */}
-        <motion.div
-          animate={{ scale: [0.94, 1.08, 0.94], opacity: [0.35, 0.65, 0.35] }}
-          transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-          className="absolute w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[var(--brand)]/25 blur-2xl pointer-events-none"
-        />
+      {/* 3. Subtle Constellation Tech Dots */}
+      <svg className="absolute inset-0 w-full h-full opacity-45 dark:opacity-65" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="dotGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {/* Constellation lines */}
+        <line x1="12%" y1="18%" x2="22%" y2="28%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1="22%" y1="28%" x2="16%" y2="44%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1="82%" y1="15%" x2="90%" y2="30%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1="90%" y1="30%" x2="78%" y2="42%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1="78%" y1="75%" x2="88%" y2="85%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1="10%" y1="70%" x2="20%" y2="82%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
 
-        {/* Master Choreographed SVG: Bars, Orbit Halo, and Detaching Dots */}
-        <svg
-          viewBox="-25 -10 240 260"
-          className="w-full h-full object-contain relative z-10"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            {/* Soft glow filter for orbiting dots */}
-            <filter id="dot-orbit-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor={darkMode ? "#21C87A" : "#1BB36B"} floodOpacity="0.6" />
-            </filter>
-            <filter id="navy-dot-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={darkMode ? "#FFFFFF" : "#141C3C"} floodOpacity="0.4" />
-            </filter>
-          </defs>
-
-          {/* Glowing Orbit Rings (appear when dots lift off) */}
-          <motion.circle
-            cx={CENTER_X}
-            cy={CENTER_Y}
-            r={ORBIT_R}
-            fill="none"
-            stroke="var(--brand, #21C87A)"
-            strokeWidth="1.8"
-            strokeDasharray="8 10"
-            style={{
-              opacity: orbitOpacity,
-              strokeDashoffset: orbitDashOffset,
-            }}
-          />
-          <motion.circle
-            cx={CENTER_X}
-            cy={CENTER_Y}
-            r={ORBIT_R + 22}
-            fill="none"
-            stroke="var(--brand, #21C87A)"
-            strokeWidth="1"
-            strokeDasharray="4 12"
-            style={{
-              opacity: orbitOpacity,
-            }}
-          />
-
-          {/* ── 3 Logo Bars (Spring entry from bottom) ── */}
-          <motion.g
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.1 }}
-          >
-            {/* Bar 0 (Left: elevated baseline at 211) */}
-            <rect
-              x={15}
-              y={98}
-              width={44}
-              height={113}
-              rx={22}
-              fill={navyColor}
-              className="transition-colors duration-500"
-            />
-
-            {/* Bar 1 (Middle: baseline at 225) */}
-            <rect
-              x={73}
-              y={81}
-              width={44}
-              height={144}
-              rx={22}
-              fill={navyColor}
-              className="transition-colors duration-500"
-            />
-
-            {/* Bar 2 (Right: green, baseline at 225) */}
-            <rect
-              x={131}
-              y={65}
-              width={44}
-              height={160}
-              rx={22}
-              fill={greenColor}
-            />
-          </motion.g>
-
-          {/* ── The 3 Authentic Logo Dots that Orbit and Return ── */}
-
-          {/* Dot 0 (Left Bar's Dot) */}
-          <motion.circle
-            cx={dot0X}
-            cy={dot0Y}
-            r={17}
-            fill={navyColor}
-            style={{
-              scale: dot0Scale,
-              originX: "50%",
-              originY: "50%",
-            }}
-            filter="url(#navy-dot-glow)"
-            className="transition-colors duration-500"
-          />
-
-          {/* Dot 1 (Middle Bar's Dot) */}
-          <motion.circle
-            cx={dot1X}
-            cy={dot1Y}
-            r={17}
-            fill={navyColor}
-            style={{
-              scale: dot1Scale,
-              originX: "50%",
-              originY: "50%",
-            }}
-            filter="url(#navy-dot-glow)"
-            className="transition-colors duration-500"
-          />
-
-          {/* Dot 2 (Right Bar's Dot - Green) */}
-          <motion.circle
-            cx={dot2X}
-            cy={dot2Y}
-            r={17}
-            fill={greenDotColor}
-            style={{
-              scale: dot2Scale,
-              originX: "50%",
-              originY: "50%",
-            }}
-            filter="url(#dot-orbit-glow)"
-            className="transition-colors duration-500"
-          />
-        </svg>
-      </div>
-
-      {/* Brand Title & Subtitle */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.5 }}
-        className="text-center mb-6 z-10"
-      >
-        <h2
-          className={`font-heading font-black text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2 ${
-            darkMode ? "text-white" : "text-[#101828]"
-          }`}
-        >
-          <span>{lang === "ar" ? "شغال" : "Shaghal"}</span>
-          <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-ping" />
-        </h2>
-        <p
-          className={`text-xs sm:text-sm font-bold tracking-widest uppercase mt-1 text-[var(--brand)]`}
-        >
-          {lang === "ar" ? "استوديو الأنظمة الرقمية" : "Digital Systems Studio"}
-        </p>
-      </motion.div>
-
-      {/* Modern High-Tech Loading Bar */}
-      <div className="w-52 sm:w-60 z-10 flex flex-col items-center gap-2">
-        <div
-          className={`w-full h-1.5 rounded-full overflow-hidden p-[1px] relative border transition-colors duration-500 ${
-            darkMode ? "bg-slate-800/80 border-white/10" : "bg-slate-200/90 border-slate-300/60"
-          }`}
-        >
-          <div
-            className="h-full rounded-full brand-green-gradient shadow-[0_0_12px_rgba(var(--brand-rgb),0.8)] transition-[width] duration-75 ease-out"
-            style={{ width: `${displayProgress}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between w-full text-[11px] font-mono font-bold px-1">
-          <span className="text-[var(--brand)]">
-            {displayProgress < 100
-              ? (lang === "ar" ? "جاري تهيئة الأنظمة..." : "Initializing systems...")
-              : (lang === "ar" ? "اكتملت التهيئة ✓" : "Ready ✓")}
-          </span>
-          <span className={darkMode ? "text-white" : "text-[#101828]"}>
-            {displayProgress}%
-          </span>
-        </div>
-      </div>
-    </motion.div>
+        {/* Constellation pulsing dots */}
+        <circle cx="12%" cy="18%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3s" }} />
+        <circle cx="22%" cy="28%" r="2" fill="#2DD4BF" />
+        <circle cx="16%" cy="44%" r="2.5" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "4s" }} />
+        <circle cx="82%" cy="15%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3.5s" }} />
+        <circle cx="90%" cy="30%" r="2" fill="#2DD4BF" />
+        <circle cx="78%" cy="42%" r="2.5" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "4.5s" }} />
+        <circle cx="10%" cy="70%" r="2" fill="#2DD4BF" />
+        <circle cx="20%" cy="82%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3.2s" }} />
+        <circle cx="78%" cy="75%" r="2.5" fill="#2DD4BF" />
+        <circle cx="88%" cy="85%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3.8s" }} />
+        <circle cx="50%" cy="12%" r="2" fill="#38BDF8" />
+        <circle cx="52%" cy="65%" r="2" fill="#2DD4BF" />
+      </svg>
+    </div>
   );
 }
 
@@ -673,20 +319,8 @@ export default function AgencyWebsite() {
       darkMode ? "bg-[#101828] text-slate-100" : "bg-[var(--bg)] text-[var(--ink)]"
     }`} dir={t.dir}>
 
-      {/* ── Initial Splash / Loading Screen ──────────────────────── */}
-      <AnimatePresence>
-        {isLoading && (
-          <LogoLoaderSplash
-            onFinish={() => setIsLoading(false)}
-            isRTL={isRTL}
-            lang={lang}
-            darkMode={darkMode}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Background Dynamic Particles Animation ───────────────── */}
-      <AnimatedBackground theme={theme} darkMode={darkMode} shouldReduceMotion={shouldReduceMotion} />
+      {/* ── Background Cyber Scan Light & Constellation Dots ───── */}
+      <ElegantTechBackground darkMode={darkMode} />
 
       {/* ── Scroll Progress Bar (Neon Top Indicator) ───────────────── */}
       <motion.div
@@ -886,17 +520,6 @@ export default function AgencyWebsite() {
               </a>
             </motion.div>
 
-            {/* Scroll Down Indicator */}
-            <motion.div variants={FI_UP} className="flex flex-col items-center justify-center gap-2 mb-14 text-xs font-bold text-[var(--muted)] dark:text-slate-400">
-              <span className="tracking-wide">{isRTL ? "مرر للأسفل لاستكشاف الأنظمة" : "Scroll down to explore systems"}</span>
-              <div className="w-5 h-9 rounded-full border-2 border-[var(--brand)]/40 flex items-start justify-center p-1 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm">
-                <motion.div
-                  animate={{ y: [0, 12, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
-                  className="w-1.5 h-2 rounded-full bg-[var(--brand)]"
-                />
-              </div>
-            </motion.div>
 
             {/* Hero Mockup — Simple, Clean & High Performance */}
             <div className="mb-16">

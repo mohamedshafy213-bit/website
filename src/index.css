@@ -426,3 +426,42 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Subtle Cyber Scan Light Beam ── */
+@keyframes cyberScan {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.65;
+  }
+  85% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.cyber-scan-beam {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(56, 189, 248, 0.15) 20%,
+    rgba(56, 189, 248, 0.8) 50%,
+    rgba(45, 212, 191, 0.8) 55%,
+    rgba(56, 189, 248, 0.15) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 16px 2px rgba(56, 189, 248, 0.45);
+  animation: cyberScan 8.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+  z-index: 1;
+}
