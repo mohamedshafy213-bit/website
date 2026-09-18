@@ -1,0 +1,26 @@
+# robots.txt for Shaghal (شغال)
+# https://shaghal.io
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*?*
+
+# Allow major search engine crawlers explicitly
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Sitemap location
+Sitemap: https://shaghal.io/sitemap.xml

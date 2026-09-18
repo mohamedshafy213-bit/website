@@ -590,6 +590,26 @@ export default function AgencyWebsite() {
     document.documentElement.lang = lang;
     document.documentElement.dir  = t.dir;
     localStorage.setItem("Aura_lang", lang);
+
+    if (lang === "ar") {
+      document.title = "شغال | Shaghal — استوديو الأنظمة الرقمية والبرمجية المخصصة";
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute(
+          "content",
+          "شغال (Shaghal) — استوديو تقني متخصص في تصميم وتطوير الأنظمة الرقمية المخصصة للشركات: نقاط البيع POS، إدارة العيادات الطبية EMR، وإدارة المخازن والعهد بدقة وأعلى كفاءة."
+        );
+      }
+    } else {
+      document.title = "Shaghal | Custom Digital Systems Studio — High Performance Business Software";
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute(
+          "content",
+          "Shaghal — Custom Software & Digital Systems Studio. We engineer tailored solutions for enterprises: POS systems, Medical Clinic Management, and Warehouse & Asset Tracking."
+        );
+      }
+    }
   }, [lang, t.dir]);
 
   // High-performance scroll listener: rAF-throttled + only triggers state updates when boolean flips

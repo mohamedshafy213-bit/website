@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A0F1D"/>
+      <stop offset="50%" stop-color="#101828"/>
+      <stop offset="100%" stop-color="#061A14"/>
+    </linearGradient>
+
+    <!-- Radial Glows -->
+    <radialGradient id="greenGlow" cx="80%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#21C87A" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#21C87A" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="blueGlow" cx="20%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#0D2240" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0D2240" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Emerald Text Gradient -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#21C87A"/>
+      <stop offset="100%" stop-color="#4EEDB0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <rect width="1200" height="630" fill="url(#greenGlow)"/>
+  <rect width="1200" height="630" fill="url(#blueGlow)"/>
+
+  <!-- Subtle Grid Accent -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Logo Group -->
+  <g transform="translate(100, 110)">
+    <!-- Bar 1 -->
+    <circle cx="20" cy="38" r="9" fill="#3B82F6"/>
+    <rect x="11" y="50" width="18" height="70" rx="9" fill="#1E3A8A"/>
+
+    <!-- Bar 2 -->
+    <circle cx="62" cy="24" r="11" fill="#10B981"/>
+    <rect x="51" y="38" width="22" height="82" rx="11" fill="#047857"/>
+
+    <!-- Bar 3 (Tallest) -->
+    <circle cx="108" cy="12" r="13" fill="#34D399"/>
+    <rect x="95" y="28" width="26" height="92" rx="13" fill="#21C87A"/>
+  </g>
+
+  <!-- Brand Name -->
+  <text x="260" y="195" font-family="'Cairo', 'Segoe UI', Tahoma, sans-serif" font-size="78" font-weight="900" fill="#FFFFFF" letter-spacing="-1">
+    شغال <tspan fill="url(#textGrad)">| Shaghal</tspan>
+  </text>
+
+  <!-- Tagline / Headline -->
+  <text x="100" y="320" font-family="'Cairo', 'Tajawal', 'Segoe UI', sans-serif" font-size="44" font-weight="800" fill="#F3F4F6">
+    استوديو الأنظمة البرمجية والرقمية المخصصة
+  </text>
+  <text x="100" y="375" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="500" fill="#9CA3AF">
+    Custom Digital Systems Studio — High Performance Software For Modern Businesses
+  </text>
+
+  <!-- Feature Pills -->
+  <g transform="translate(100, 435)">
+    <!-- Pill 1: POS -->
+    <g transform="translate(0, 0)">
+      <rect width="280" height="52" rx="26" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+      <circle cx="28" cy="26" r="8" fill="#21C87A"/>
+      <text x="50" y="33" font-family="'Cairo', sans-serif" font-size="18" font-weight="700" fill="#F8FAFC">نظام نقاط البيع POS</text>
+    </g>
+
+    <!-- Pill 2: Clinics -->
+    <g transform="translate(300, 0)">
+      <rect width="310" height="52" rx="26" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+      <circle cx="28" cy="26" r="8" fill="#38BDF8"/>
+      <text x="50" y="33" font-family="'Cairo', sans-serif" font-size="18" font-weight="700" fill="#F8FAFC">إدارة العيادات الطبية Clinic</text>
+    </g>
+
+    <!-- Pill 3: Warehouses -->
+    <g transform="translate(630, 0)">
+      <rect width="320" height="52" rx="26" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+      <circle cx="28" cy="26" r="8" fill="#A78BFA"/>
+      <text x="50" y="33" font-family="'Cairo', sans-serif" font-size="18" font-weight="700" fill="#F8FAFC">إدارة المخازن والعهد Warehouse</text>
+    </g>
+  </g>
+
+  <!-- Footer Link & Badges -->
+  <line x1="100" y1="535" x2="1100" y2="535" stroke="#334155" stroke-width="1"/>
+  
+  <text x="100" y="580" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" fill="#21C87A">
+    🌐 https://shaghal.io
+  </text>
+
+  <text x="1100" y="580" text-anchor="end" font-family="'Cairo', 'Segoe UI', sans-serif" font-size="18" font-weight="600" fill="#64748B">
+    سرعة فائقة • تشغيل دون انقطاع • دعم فني مخصص
+  </text>
+</svg>
