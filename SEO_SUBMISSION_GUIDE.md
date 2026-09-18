@@ -17,7 +17,7 @@
 3. اضغط على **"Add Property"** (إضافة موقع).
 4. ستظهر لك نافذتان:
    - **Domain**: يتطلب إضافة سجل DNS TXT في لوحة تحكم الدومين (مثل Namecheap, GoDaddy, Cloudflare). *هذا هو الخيار الأفضل لأنه يغطي جميع الـ subdomains و https*.
-   - **URL Prefix**: أدخل رابط موقعك كاملاً (مثال: `https://shaghal.io`).
+   - **URL Prefix**: أدخل رابط موقعك كاملاً (مثال: `https://shaghal.net`).
 5. **طريقة إثبات الملكية**:
    - إذا اخترت **URL Prefix**، اختر التحقق بواسطة **HTML Tag**.
    - ستعطيك جوجل كوداً مثل هذا: `<meta name="google-site-verification" content="XXXXXXXXX" />`
@@ -46,7 +46,7 @@
 بدلاً من الانتظار أياماً، يمكنك إجبار روبوت جوجل على فحص الموقع خلال 24-48 ساعة:
 
 1. في أعلى شاشة Google Search Console، ستجد شريط بحث مكتوب عليه **"Inspect any URL in..."**.
-2. اكتب رابط موقعك الرئيسي (مثلاً `https://shaghal.io/`) واضغط Enter.
+2. اكتب رابط موقعك الرئيسي (`https://shaghal.net/`) واضغط Enter.
 3. ستظهر رسالة "URL is not on Google" (إذا كان الموقع جديداً).
 4. اضغط على زر **"TEST LIVE URL"** (اختبار عنوان URL المباشر).
 5. بعد انتهاء الفحص بنجاح، اضغط على زر **"REQUEST INDEXING"** (طلب الفهرسة).
@@ -56,7 +56,7 @@
 ## الخطوة 4: التحقق من ملف الروبوت (robots.txt)
 
 تم إنشاء ملف `robots.txt` وهو متاح على الرابط:
-`https://shaghal.io/robots.txt`
+`https://shaghal.net/robots.txt`
 
 يسمح الملف لجميع محركات البحث الرئيسية (Googlebot, Bingbot, Applebot) بفهرسة الموقع دون أي حجب ويوجههم تلقائياً لخريطة الموقع.
 
@@ -77,7 +77,7 @@
 1. سجّل شركتك في [Google Business Profile](https://www.google.com/business/).
 2. حدد الاسم: **شغال | Shaghal — لأنظمة البرمجيات المخصصة**.
 3. التصنيف: **Software Company** / **شركة برمجيات**.
-4. ضع رابط الموقع والإيميل (`hello@shaghal.io`).
+4. ضع رابط الموقع والإيميل (`hello@shaghal.net`).
 5. هذا يرفع نسبة ظهور اسم الشركة في نتائج البحث بنسبة تفوق 300%.
 
 ---

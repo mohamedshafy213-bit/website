@@ -24,7 +24,7 @@ import invBarcodeModal  from "./assets/inventory/barcode-modal.png";
 // ============================================================
 
 export const BRAND = "Shaghal";
-export const EMAIL = "hello@shaghal.io";
+export const EMAIL = "hello@shaghal.net";
 
 export const CLINIC_SCREENSHOTS = [
   { src: shotDashboard,    labelAr: "لوحة المؤشرات",         labelEn: "Live KPI Dashboard" },

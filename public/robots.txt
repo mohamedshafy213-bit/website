@@ -1,5 +1,5 @@
 # robots.txt for Shaghal (شغال)
-# https://shaghal.io
+# https://shaghal.net
 
 User-agent: *
 Allow: /
@@ -23,4 +23,4 @@ User-agent: DuckDuckBot
 Allow: /
 
 # Sitemap location
-Sitemap: https://shaghal.io/sitemap.xml
+Sitemap: https://shaghal.net/sitemap.xml
