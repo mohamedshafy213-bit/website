@@ -546,6 +546,25 @@ const PROCESS_ICONS = [Compass, FileCheck2, Cpu, MonitorCheck];
 
 const SERVICE_ICONS = { pos: Monitor, warehouse: Warehouse, clinic: Stethoscope };
 
+// ── Adaptive Vector Brand Logo Component ─────────────────────────────────────
+function BrandLogo({ className = "w-10 h-10", isDark = false }) {
+  return (
+    <svg viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-label="Shaghal Logo">
+      {/* Bar 1 (Shortest: Navy in light, Electric Blue in dark) */}
+      <circle cx="22" cy="42" r="8" fill={isDark ? "#38BDF8" : "#101828"} />
+      <rect x="14" y="52" width="16" height="64" rx="8" fill={isDark ? "#1E3A8A" : "#101828"} />
+
+      {/* Bar 2 (Medium: Deep Navy in light, Cyan-Blue in dark) */}
+      <circle cx="60" cy="32" r="9" fill={isDark ? "#60A5FA" : "#0D2240"} />
+      <rect x="51" y="43" width="18" height="73" rx="9" fill={isDark ? "#0D2240" : "#0D2240"} stroke={isDark ? "#38BDF8" : "none"} strokeWidth={isDark ? 1 : 0} />
+
+      {/* Bar 3 (Tallest: Signature Emerald Green) */}
+      <circle cx="100" cy="24" r="10" fill={isDark ? "#4EEDB0" : "#1A5C55"} />
+      <rect x="90" y="36" width="20" height="80" rx="10" fill="#21C87A" />
+    </svg>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function AgencyWebsite() {
   const [isLoading,   setIsLoading]  = useState(true);
@@ -758,8 +777,7 @@ export default function AgencyWebsite() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <a href="#" className="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-lg p-1">
-            <img src="/logo.svg" alt="Shaghal Logo"
-              className="w-10 h-10 object-contain group-hover:scale-105 transition-transform drop-shadow-md" />
+            <BrandLogo className="w-10 h-10 shrink-0 group-hover:scale-105 transition-transform drop-shadow-md" isDark={darkMode} />
             <div className="flex flex-col">
               <span className="font-heading font-black text-xl tracking-tight text-[var(--ink)] dark:text-white">
                 {lang === "ar" ? "شغال" : "Shaghal"}
@@ -2159,7 +2177,7 @@ export default function AgencyWebsite() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
             <div className="md:col-span-2">
               <a href="#" className="flex items-center gap-3 mb-4 focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-lg p-1 w-fit">
-                <img src="/logo.svg" alt="Shaghal Logo" className="w-9 h-9 object-contain" />
+                <BrandLogo className="w-9 h-9 shrink-0" isDark={true} />
                 <span className="font-heading font-black text-xl text-white">
                   {lang === "ar" ? "شغال" : "Shaghal"}
                 </span>

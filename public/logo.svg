@@ -1,13 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
-  <!-- Bar 1 (shortest, navy) -->
-  <circle cx="22" cy="42" r="8" fill="#101828"/>
-  <rect x="14" y="52" width="16" height="64" rx="8" fill="#101828"/>
+  <defs>
+    <style>
+      .bar1-c { fill: #101828; }
+      .bar1-r { fill: #101828; }
+      .bar2-c { fill: #0D2240; }
+      .bar2-r { fill: #0D2240; }
+      .bar3-c { fill: #1A5C55; }
+      .bar3-r { fill: #21C87A; }
+      @media (prefers-color-scheme: dark) {
+        .bar1-c { fill: #38BDF8; }
+        .bar1-r { fill: #1E3A8A; }
+        .bar2-c { fill: #60A5FA; }
+        .bar2-r { fill: #0D2240; }
+        .bar3-c { fill: #4EEDB0; }
+        .bar3-r { fill: #21C87A; }
+      }
+    </style>
+  </defs>
+  <!-- Bar 1 (shortest) -->
+  <circle cx="22" cy="42" r="8" class="bar1-c"/>
+  <rect x="14" y="52" width="16" height="64" rx="8" class="bar1-r"/>
 
-  <!-- Bar 2 (medium, navy) -->
-  <circle cx="60" cy="32" r="9" fill="#0D2240"/>
-  <rect x="51" y="43" width="18" height="73" rx="9" fill="#0D2240"/>
+  <!-- Bar 2 (medium) -->
+  <circle cx="60" cy="32" r="9" class="bar2-c"/>
+  <rect x="51" y="43" width="18" height="73" rx="9" class="bar2-r"/>
 
   <!-- Bar 3 (tallest, green) -->
-  <circle cx="100" cy="24" r="10" fill="#1A5C55"/>
-  <rect x="90" y="36" width="20" height="80" rx="10" fill="#21C87A"/>
+  <circle cx="100" cy="24" r="10" class="bar3-c"/>
+  <rect x="90" y="36" width="20" height="80" rx="10" class="bar3-r"/>
 </svg>
