@@ -79,14 +79,27 @@
     font-family: var(--font-body);
     background-color: var(--bg);
     color: var(--ink);
+    /* Prevent horizontal overflow on ALL screen sizes */
+    overflow-x: hidden;
+    width: 100%;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    /* Safe area insets for notched/dynamic-island devices */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Baseline minimum for form controls — prevents iOS Safari auto-zoom on input focus */
+  input, textarea, select {
+    font-size: max(16px, 1em);
+  }
+
+  h1, h2, h3, h4, h5, h6,
   .font-heading {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
@@ -97,19 +110,30 @@
     outline: 2px solid var(--brand) !important;
     outline-offset: 2px !important;
   }
+
+  /* Touch targets: inline/icon elements should NOT be forced to 44px individually,
+     so we apply this only to the block-level interactive controls */
+  button:not(.icon-only),
+  a:not(.inline-link) {
+    min-height: 44px;
+  }
 }
 
 /* ── Typography Styles ── */
 .mercury-h1 {
   font-family: var(--font-display);
   font-weight: 900;
-  line-height: 1.35;
+  /* Fluid: min 1.9rem (phone) → max 4.5rem (desktop) */
+  font-size: clamp(1.9rem, 5.2vw + 0.5rem, 4.5rem);
+  line-height: 1.28;
   letter-spacing: -0.01em;
 }
 
 .mercury-h2 {
   font-family: var(--font-display);
   font-weight: 800;
+  /* Fluid: min 1.5rem (phone) → max 2.75rem (desktop) */
+  font-size: clamp(1.5rem, 3.2vw + 0.5rem, 2.75rem);
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -464,4 +488,53 @@ textarea {
   animation: cyberScan 8.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
   z-index: 1;
-}
+}
+
+/* ── Mobile Drawer ─────────────────────────────────────────────────────────── */
+/* Prevent drawer's ::before backdrop from causing horizontal overflow */
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 40;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ── Absolute decorative blobs: contain overflow within their section ────── */
+.section-overflow-guard {
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Responsive Image Helpers ─────────────────────────────────────────────── */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Safe-inset back-to-top button (for devices with bottom bars) ─────────── */
+.back-to-top-btn {
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  right: calc(24px + env(safe-area-inset-right));
+}
+
+/* ── Mobile Stat Card Scaling ─────────────────────────────────────────────── */
+@media (max-width: 479px) {
+  .stat-card p:first-child {
+    font-size: clamp(1.75rem, 8vw, 2.5rem) !important;
+  }
+}
+
+/* ── Floating Badges: prevent overflow on small screens ──────────────────── */
+@media (max-width: 639px) {
+  .float-badge-bottom {
+    position: static !important;
+    margin-top: 16px;
+  }
+  .float-badge-top {
+    position: static !important;
+    margin-bottom: 16px;
+  }
+}
+

@@ -664,7 +664,16 @@ export default function AgencyWebsite() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Dynamic active screenshots based on activeService (POS vs Clinic)
+  // Body scroll lock when mobile drawer is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
   const activeScreenshots = activeService?.screenshots || CLINIC_SCREENSHOTS;
 
   // Lightbox keyboard navigation & focus trapping
@@ -831,49 +840,119 @@ export default function AgencyWebsite() {
             </a>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile Controls */}
           <div className="flex lg:hidden items-center gap-2">
-            <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full bg-slate-200/60 dark:bg-slate-800" aria-label="Toggle dark mode">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2.5 rounded-full bg-slate-200/60 dark:bg-slate-800 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition-colors"
+              style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              aria-label="Toggle dark mode"
+            >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </button>
-            <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-              className="px-2.5 py-1 rounded-full border border-[var(--border)] dark:border-slate-800 text-xs font-bold" aria-label="Change language">
-              {t.langSwitch}
-            </button>
-            <button onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 rounded-full bg-[#101828] text-white dark:bg-slate-800" aria-label="Open navigation menu">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="p-2.5 rounded-full bg-[#101828] text-white dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors"
+              style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={menuOpen}
+            >
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Drawer */}
+        {/* ── Mobile Drawer ── */}
         <AnimatePresence>
           {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden glass-modal border-t border-[var(--border)] dark:border-slate-800 px-6 py-6 overflow-hidden"
-            >
-              <div className="flex flex-col gap-4 font-semibold text-[var(--ink)] dark:text-white">
-                {[
-                  ["#hero", t.nav.home], ["#about", t.nav.about], ["#services", t.nav.services],
-                  ["#process", t.nav.process], ["#work", t.nav.work],
-                  ["#testimonials", t.nav.testimonials], ["#faq", t.nav.faq],
-                ].map(([href, label]) => (
-                  <a key={href} href={href} onClick={() => setMenuOpen(false)}
-                    className="py-2 border-b border-[var(--border)] dark:border-slate-800 hover:text-[var(--brand)]">
-                    {label}
+            <>
+              {/* Backdrop */}
+              <motion.div
+                key="backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                onClick={() => setMenuOpen(false)}
+                aria-hidden="true"
+              />
+              {/* Drawer Panel */}
+              <motion.div
+                key="drawer"
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="lg:hidden glass-modal border-t border-[var(--border)] dark:border-slate-800 relative z-50"
+              >
+                <div className="px-5 py-6 flex flex-col gap-1">
+                  {/* Nav Links */}
+                  {[
+                    ["#hero", t.nav.home],
+                    ["#about", t.nav.about],
+                    ["#services", t.nav.services],
+                    ["#process", t.nav.process],
+                    ["#work", t.nav.work],
+                    ["#testimonials", t.nav.testimonials],
+                    ["#faq", t.nav.faq],
+                  ].map(([href, label]) => (
+                    <a
+                      key={href}
+                      href={href}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center font-semibold text-base text-[var(--ink)] dark:text-white
+                        hover:text-[var(--brand)] border-b border-[var(--border)] dark:border-slate-800
+                        transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-md px-2"
+                      style={{ minHeight: 48 }}
+                    >
+                      {label}
+                    </a>
+                  ))}
+
+                  {/* Controls Row */}
+                  <div className="flex items-center gap-3 pt-4 pb-1">
+                    {/* Dark Mode Toggle */}
+                    <button
+                      onClick={() => setDarkMode(!darkMode)}
+                      className="flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border border-[var(--border)] dark:border-slate-700
+                        text-sm font-bold text-[var(--ink)] dark:text-white hover:border-[var(--brand)] transition-colors"
+                      style={{ minHeight: 44 }}
+                      aria-label="Toggle dark mode"
+                    >
+                      {darkMode
+                        ? <><Sun className="w-4 h-4 text-amber-400" /><span className="text-xs">{isRTL ? 'فاتح' : 'Light'}</span></>
+                        : <><Moon className="w-4 h-4" /><span className="text-xs">{isRTL ? 'داكن' : 'Dark'}</span></>}
+                    </button>
+
+                    {/* Language Switch */}
+                    <button
+                      onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+                      className="flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border border-[var(--border)] dark:border-slate-700
+                        text-sm font-bold text-[var(--ink)] dark:text-white hover:border-[var(--brand)] transition-colors"
+                      style={{ minHeight: 44 }}
+                      aria-label="Change language"
+                    >
+                      <Globe className="w-4 h-4 text-[var(--brand)]" />
+                      <span className="text-xs">{t.langSwitch}</span>
+                    </button>
+                  </div>
+
+                  {/* Full-width CTA */}
+                  <a
+                    href="#contact"
+                    onClick={() => setMenuOpen(false)}
+                    className="mt-2 w-full flex items-center justify-center gap-2 rounded-full text-white
+                      font-heading font-bold brand-green-gradient cta-pulse-btn
+                      focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
+                    style={{ minHeight: 52, fontSize: '1rem' }}
+                  >
+                    {t.cta}
+                    {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                   </a>
-                ))}
-                
-                <a href="#contact" onClick={() => setMenuOpen(false)}
-                  className="mt-2 w-full text-center py-3.5 rounded-full text-white font-heading font-bold brand-green-gradient">
-                  {t.cta}
-                </a>
-              </div>
-            </motion.div>
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </header>
@@ -930,28 +1009,30 @@ export default function AgencyWebsite() {
 
             {/* CTA Pills */}
             <motion.div variants={FI_UP}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10 px-2 sm:px-0">
               <a href="#services"
                 className="w-full sm:w-auto px-9 py-4 rounded-full text-white font-heading font-bold
-                  text-base mercury-pill-btn mercury-pill-btn-primary cta-pulse-btn flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+                  text-base mercury-pill-btn mercury-pill-btn-primary cta-pulse-btn flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
+                style={{ minHeight: 52 }}>
                 {t.hero.explore}
                 {isRTL ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
               </a>
               <a href="#work"
                 className="w-full sm:w-auto px-9 py-4 rounded-full font-heading font-bold text-base
-                  mercury-pill-btn mercury-pill-btn-secondary flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+                  mercury-pill-btn mercury-pill-btn-secondary flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
+                style={{ minHeight: 52 }}>
                 {t.hero.portfolio}
               </a>
             </motion.div>
 
 
             {/* Hero Mockup — Simple, Clean & High Performance */}
-            <div className="mb-16">
+            <div className="mb-12 sm:mb-16 px-0 sm:px-2">
               <div
-                className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden border border-[var(--border)]
-                  dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900 p-3 sm:p-5"
+                className="relative max-w-5xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden border border-[var(--border)]
+                  dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900 p-2 sm:p-3 md:p-5"
               >
-                <div className="relative rounded-2xl overflow-hidden bg-[#101828] aspect-[16/9]
+                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#101828] aspect-[4/3] sm:aspect-[16/9]
                   flex items-center justify-center">
                   <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=80&auto=format&fit=crop"
                     alt="Shaghal Digital Systems Dashboard"
@@ -959,17 +1040,17 @@ export default function AgencyWebsite() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#101828] via-[#101828]/25 to-transparent" />
 
                   {/* Feature Badges */}
-                  <div className="absolute bottom-6 right-6 left-6 flex flex-wrap items-end justify-between gap-4">
-                    <div className="flex items-center gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
-                      <div className="mercury-line-art-badge w-10 h-10">
-                        <Database className="w-5 h-5 text-[var(--brand)]" />
+                  <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-6 flex flex-wrap items-end justify-between gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
+                        p-2.5 sm:p-3.5 px-3 sm:px-5 rounded-xl sm:rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
+                      <div className="mercury-line-art-badge w-8 h-8 sm:w-10 sm:h-10 shrink-0">
+                        <Database className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--brand)]" />
                       </div>
                       <div>
-                        <span className="block text-xs font-bold text-[var(--ink)] dark:text-white">
+                        <span className="block text-[11px] sm:text-xs font-bold text-[var(--ink)] dark:text-white">
                           {isRTL ? "أنظمة برمجية مخصصة ١٠٠٪" : "100% Custom Systems"}
                         </span>
-                        <span className="text-[11px] text-[var(--muted)] dark:text-slate-400">
+                        <span className="text-[10px] sm:text-[11px] text-[var(--muted)] dark:text-slate-400">
                           {isRTL ? "نقاط بيع • مخازن • عيادات" : "POS • Warehouse • Clinics"}
                         </span>
                       </div>
@@ -1073,16 +1154,16 @@ export default function AgencyWebsite() {
               <div className="relative rounded-3xl overflow-hidden border border-[var(--border)]
                 dark:border-slate-800 shadow-xl">
                 <img src={ABOUT_IMAGE} alt={t.about.imageAlt} loading="lazy" decoding="async"
-                  className="w-full h-[460px] object-cover" />
+                  className="w-full h-64 sm:h-80 md:h-[420px] lg:h-[460px] object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/50 via-transparent to-transparent" />
               </div>
 
-              {/* Floating Badge 1 (In-House Team) */}
+              {/* Floating Badge 1 (In-House Team) — stacks on mobile */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
                 viewport={vp} transition={{ delay: 0.35 }}
-                className="absolute -bottom-6 right-6 sm:right-10 bg-white dark:bg-[#101828] p-4 px-6
-                  rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl flex items-center gap-4 animate-gentle-float">
+                className="float-badge-bottom absolute -bottom-6 right-4 sm:right-10 bg-white dark:bg-[#101828] p-3.5 sm:p-4 px-4 sm:px-6
+                  rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl flex items-center gap-3 sm:gap-4 animate-gentle-float">
                 <div className="mercury-line-art-badge">
                   <Users className="w-6 h-6 text-[var(--brand)]" />
                 </div>
@@ -1096,15 +1177,15 @@ export default function AgencyWebsite() {
                 </div>
               </motion.div>
 
-              {/* Floating Badge 2 (99.9% Uptime Guarantee) */}
+              {/* Floating Badge 2 (99.9% Uptime Guarantee) — stacks on mobile */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
                 viewport={vp} transition={{ delay: 0.45 }}
-                className="absolute -top-6 left-6 sm:left-10 bg-white dark:bg-[#101828] p-3.5 px-5
-                  rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl flex items-center gap-3.5 animate-gentle-float"
+                className="float-badge-top absolute -top-6 left-4 sm:left-10 bg-white dark:bg-[#101828] p-3 sm:p-3.5 px-4 sm:px-5
+                  rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl flex items-center gap-3 sm:gap-3.5 animate-gentle-float"
                 style={{ animationDelay: "2s" }}>
-                <div className="mercury-line-art-badge w-10 h-10">
-                  <ShieldCheck className="w-5 h-5 text-[var(--brand)]" />
+                <div className="mercury-line-art-badge w-9 h-9 sm:w-10 sm:h-10">
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--brand)]" />
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-xs sm:text-sm text-[var(--ink)] dark:text-white">
@@ -2056,7 +2137,7 @@ export default function AgencyWebsite() {
       </section>
 
       {/* ── CONTACT (DARK SECTION) ─────────────────────────────────────────── */}
-      <section id="contact" className="py-28 lg:py-40 bg-[#101828] text-white relative overflow-hidden">
+      <section id="contact" className="py-20 sm:py-28 lg:py-40 bg-[#101828] text-white relative overflow-hidden">
         {shouldReduceMotion ? (
           <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
             style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
@@ -2069,7 +2150,7 @@ export default function AgencyWebsite() {
           />
         )}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={vp} className="lg:col-span-5">
               <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
@@ -2095,7 +2176,7 @@ export default function AgencyWebsite() {
 
             <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={vp} transition={{ delay: 0.2 }} className="lg:col-span-7">
-              <div className="bg-[#101828] rounded-3xl p-8 sm:p-12 border border-[var(--brand)]/25 shadow-2xl">
+              <div className="bg-[#101828] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-[var(--brand)]/25 shadow-2xl">
                 {formSent ? (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                     className="text-center py-12">
@@ -2120,11 +2201,12 @@ export default function AgencyWebsite() {
                         <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                           {f.label}
                         </label>
-                        <input type={f.type} required value={formState[f.key]}
+                      <input type={f.type} required value={formState[f.key]}
                           onChange={e => setFormState(p => ({ ...p, [f.key]: e.target.value }))}
                           placeholder={f.ph}
+                          style={{ minHeight: 48 }}
                           className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-slate-700
-                            text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
+                            text-white placeholder-slate-500 focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
                       </div>
                     ))}
 
@@ -2134,8 +2216,9 @@ export default function AgencyWebsite() {
                       </label>
                       <select value={formState.service}
                         onChange={e => setFormState(p => ({ ...p, service: e.target.value }))}
+                        style={{ minHeight: 48 }}
                         className="w-full px-4 py-3.5 rounded-2xl bg-[#101828] border border-slate-700
-                          text-white text-sm focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+                          text-white focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
                         <option value="">{t.contact.selectPlaceholder}</option>
                         {t.contact.serviceOptions.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
                       </select>
@@ -2172,9 +2255,9 @@ export default function AgencyWebsite() {
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#101828] text-slate-400 py-16 border-t border-slate-800">
+      <footer className="bg-[#101828] text-slate-400 py-12 sm:py-16 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-10 sm:mb-12">
             <div className="md:col-span-2">
               <a href="#" className="flex items-center gap-3 mb-4 focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-lg p-1 w-fit">
                 <BrandLogo className="w-9 h-9 shrink-0" isDark={true} />
@@ -2189,9 +2272,9 @@ export default function AgencyWebsite() {
               <h4 className="font-heading font-bold text-white text-sm uppercase tracking-wider mb-4">
                 {t.footer.links}
               </h4>
-              <ul className="space-y-2.5 text-sm">
+              <ul className="space-y-1">
                 {[["#hero", t.nav.home], ["#about", t.nav.about], ["#services", t.nav.services], ["#work", t.nav.work]].map(([href, label]) => (
-                  <li key={href}><a href={href} className="hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded">{label}</a></li>
+                  <li key={href}><a href={href} className="flex items-center py-2 text-sm hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded">{label}</a></li>
                 ))}
               </ul>
             </div>
@@ -2233,8 +2316,8 @@ export default function AgencyWebsite() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 right-6 z-50 p-3.5 rounded-full brand-green-gradient
-              text-white shadow-2xl hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
+            className="back-to-top-btn fixed z-50 w-12 h-12 rounded-full brand-green-gradient
+              text-white shadow-2xl hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:ring-[var(--brand)] flex items-center justify-center"
             title={t.float.top}
             aria-label="Back to top">
             <ArrowRight className="w-5 h-5 -rotate-90" />
