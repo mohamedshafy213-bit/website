@@ -551,7 +551,10 @@ export default function AgencyWebsite() {
   const [isLoading,   setIsLoading]  = useState(true);
   const [lang,       setLang]       = useState(() => localStorage.getItem("Aura_lang") || "ar");
   const [darkMode,   setDarkMode]   = useState(() => localStorage.getItem("Aura_theme") === "dark");
-  const [theme,      setTheme]      = useState(() => localStorage.getItem("shaghal_theme") || "ledger");
+  const [theme,      setTheme]      = useState(() => {
+    const saved = localStorage.getItem("shaghal_theme");
+    return (saved && saved !== "ledger") ? saved : "mercury";
+  });
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [filter,     setFilter]     = useState("all");
   const [openFaq,    setOpenFaq]    = useState(0);
