@@ -72,11 +72,16 @@
 </IfModule>
 
 # ----------------------------------------------------------------------
-# Security Headers
+# Security & Cache-Control Headers
 # ----------------------------------------------------------------------
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
   Header set X-XSS-Protection "1; mode=block"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Fast HTML Edge Caching (Reduces response time to < 0.2s for bots & crawlers)
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400"
+  </FilesMatch>
 </IfModule>
