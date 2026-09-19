@@ -6,15 +6,11 @@
   RewriteEngine On
   RewriteBase /
 
-  # 1. Force HTTPS and non-WWW (301 Permanent Redirect)
-  # Redirect www.shaghal.net -> https://shaghal.net
-  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
-
-  # Redirect HTTP -> HTTPS
-  RewriteCond %{HTTPS} off
-  RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+  # 1. Single-Hop 301 Permanent Redirect to https://shaghal.net
+  # Covers http://shaghal.net, http://www.shaghal.net, and https://www.shaghal.net in 1 hop
+  RewriteCond %{HTTPS} off [OR]
+  RewriteCond %{HTTP_HOST} ^www\.shaghal\.net$ [NC]
+  RewriteRule ^(.*)$ https://shaghal.net/$1 [R=301,L,NE]
 
   # 2. SPA Fallback: Don't rewrite files or directories that exist
   RewriteRule ^index\.html$ - [L]
