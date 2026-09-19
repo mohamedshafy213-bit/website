@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import {
-  EMAIL, TRUST_LOGOS, COPY,
+  EMAIL, PHONE, WHATSAPP_URL, TRUST_LOGOS, COPY,
   TESTIMONIAL_AVATARS, SERVICE_IMAGES, PORTFOLIO_IMAGES, ABOUT_IMAGE,
   CLINIC_SCREENSHOTS, POS_SCREENSHOTS,
 } from "./i18n.js";
@@ -42,49 +42,114 @@ const SLIDE_RIGHT = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
 };
 
-// ── Count-Up Hook ────────────────────────────────────────────────────────────
+// ── Count-Up Hook (Safe & Smart) ─────────────────────────────────────────────
 function useCountUp(target, duration = 1.8) {
-  const [count, setCount] = useState(0);
-  const ref   = useRef(null);
+  const targetStr = String(target || "").trim();
+  const [count, setCount] = useState(() => targetStr);
+  const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   useEffect(() => {
     if (!inView) return;
-    let start = null;
-    const isArabic  = /[٠-٩]/.test(String(target));
-    // extract numeric part
-    const rawStr    = String(target).replace(/[^0-9٠-٩.٪+]/g, "");
-    const numeric   = parseFloat(rawStr.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)));
-    const suffix    = String(target).replace(/[0-9٠-٩.]/g, "");
+    const str = String(target || "").trim();
+
+    // If it contains a slash (like 24/7) or no digits at all, NEVER animate it — keep exact string
+    if (str.includes("/") || !/[0-9٠-٩]/.test(str)) {
+      setCount(str);
+      return;
+    }
+
+    const isArabic = /[٠-٩]/.test(str);
+    const rawDigits = str.replace(/[^0-9٠-٩.]/g, "");
+    if (!rawDigits) {
+      setCount(str);
+      return;
+    }
+
+    // Convert Arabic digits to standard for calculation
+    const normalized = rawDigits.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+    const numeric = parseFloat(normalized);
+    if (isNaN(numeric)) {
+      setCount(str);
+      return;
+    }
+
+    // Extract non-digit prefix and suffix
+    const firstDigitIdx = str.search(/[0-9٠-٩]/);
+    const prefix = firstDigitIdx > 0 ? str.slice(0, firstDigitIdx) : "";
+    const lastDigitIdx = str.split("").reduce((acc, ch, idx) => /[0-9٠-٩]/.test(ch) ? idx : acc, -1);
+    const suffix = lastDigitIdx >= 0 && lastDigitIdx < str.length - 1 ? str.slice(lastDigitIdx + 1) : "";
 
     const arDigit = n => String(n).replace(/[0-9]/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
 
+    let start = null;
+    let animId = null;
     const step = (ts) => {
       if (!start) start = ts;
       const prog = Math.min((ts - start) / (duration * 1000), 1);
       const ease = 1 - Math.pow(1 - prog, 3);
-      const val  = Math.floor(ease * numeric);
-      setCount(isArabic ? arDigit(val) + suffix : val + suffix);
-      if (prog < 1) requestAnimationFrame(step);
+      const val = Math.floor(ease * numeric);
+      const formatted = isArabic ? arDigit(val) : val;
+      setCount(`${prefix}${formatted}${suffix}`);
+      if (prog < 1) {
+        animId = requestAnimationFrame(step);
+      }
     };
-    requestAnimationFrame(step);
+    animId = requestAnimationFrame(step);
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
   }, [inView, target, duration]);
 
-  return [ref, count || (String(target).startsWith("٠") ? "٠" : "0")];
+  return [ref, count];
 }
 
-// ── Stat Card with Count-Up ───────────────────────────────────────────────────
-function StatCard({ n, l }) {
+// ── Smart Architectural Feature Card ──────────────────────────────────────────
+function StatCard({ stat, idx = 0 }) {
+  const n = typeof stat === "object" ? stat.n : stat;
+  const l = typeof stat === "object" ? stat.l : "";
+  const desc = typeof stat === "object" ? stat.desc : "";
   const [ref, count] = useCountUp(n);
+
+  const icons = [Database, Clock, ShieldCheck, Cpu];
+  const Icon = icons[idx % icons.length];
+  const is247 = String(n).includes("24") || String(n).includes("٢٤");
+
   return (
-    <div ref={ref} className="stat-card text-center p-8 rounded-3xl bg-[var(--bg)] dark:bg-slate-900
-      border border-[var(--border)] dark:border-slate-800 hover:border-[var(--brand)]/40 transition-colors">
-      <p className="font-heading font-black text-4xl sm:text-6xl text-[var(--brand)] mb-2 tracking-tight">
-        {count}
-      </p>
-      <p className="text-xs sm:text-sm text-[var(--muted)] dark:text-slate-400 font-bold uppercase tracking-wider">
-        {l}
-      </p>
+    <div
+      ref={ref}
+      className="stat-card relative text-center p-6 sm:p-8 rounded-3xl bg-[var(--bg)] dark:bg-slate-900/90
+        border border-[var(--border)] dark:border-slate-800 hover:border-[var(--brand)]/50 transition-all
+        group hover:shadow-xl flex flex-col justify-between h-full"
+    >
+      <div className="flex flex-col items-center">
+        {/* Top Icon Badge */}
+        <div className="w-12 h-12 rounded-2xl bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
+          <Icon className="w-6 h-6" />
+        </div>
+
+        {/* Primary Metric / Badge */}
+        <div className="flex items-center justify-center gap-1.5 mb-2">
+          {is247 && (
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          )}
+          <span className="font-heading font-black text-3xl sm:text-4xl text-[var(--brand)] tracking-tight">
+            {count}
+          </span>
+        </div>
+
+        {/* Label */}
+        <h3 className="font-heading font-bold text-sm sm:text-base text-[var(--ink)] dark:text-white mb-2">
+          {l}
+        </h3>
+
+        {/* Supporting description */}
+        {desc && (
+          <p className="text-xs text-[var(--muted)] dark:text-slate-400 leading-relaxed max-w-[220px]">
+            {desc}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -2010,21 +2075,21 @@ export default function AgencyWebsite() {
         border-y border-[var(--border)] dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial="hidden" whileInView="visible" viewport={vp} variants={STAGGER}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {t.stats.map((stat, i) => (
-              <motion.div key={i} variants={FI_UP}>
-                <StatCard n={stat.n} l={stat.l} />
+              <motion.div key={i} variants={FI_UP} className="h-full">
+                <StatCard stat={stat} idx={i} />
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
-      <section id="testimonials" className="py-28 lg:py-40 bg-[var(--bg)] dark:bg-[#101828]">
+      {/* ── TESTIMONIALS / CURRENT CLIENTS ─────────────────────────────────── */}
+      <section id="testimonials" className="py-24 lg:py-36 bg-[var(--bg)] dark:bg-[#101828] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={vp} className="text-center max-w-3xl mx-auto mb-20">
+            viewport={vp} className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
               {t.testimonialsSection.eyebrow}
             </span>
@@ -2033,39 +2098,89 @@ export default function AgencyWebsite() {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {t.testimonials.map((item, idx) => {
-              const avatar = TESTIMONIAL_AVATARS[idx];
-              const fromRight = idx % 2 === 0;
-              return (
-                <SpotlightCard key={idx}
-                  initial={{ opacity: 0, x: fromRight ? (isRTL ? 60 : -60) : (isRTL ? -60 : 60) }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={vp}
-                  transition={{ duration: 0.65, delay: idx * 0.14, ease: [0.16, 1, 0.3, 1] }}
-                  className="secondary-card p-8 sm:p-10 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-6 text-amber-400">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400" />
-                      ))}
-                    </div>
-                    <p className="text-[var(--ink)] dark:text-slate-300 text-sm lg:text-base leading-relaxed italic mb-8">
-                      "{item.text}"
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4 pt-6 border-t border-[var(--border)] dark:border-slate-800">
-                    <img src={avatar} alt={item.name} loading="lazy" decoding="async"
-                      className="avatar-img w-12 h-12 rounded-full object-cover border-2 border-[var(--brand)] shadow-md" />
+          {t.testimonials && t.testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {t.testimonials.map((item, idx) => {
+                const avatar = TESTIMONIAL_AVATARS[idx];
+                const fromRight = idx % 2 === 0;
+                return (
+                  <SpotlightCard key={idx}
+                    initial={{ opacity: 0, x: fromRight ? (isRTL ? 60 : -60) : (isRTL ? -60 : 60) }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={vp}
+                    transition={{ duration: 0.65, delay: idx * 0.14, ease: [0.16, 1, 0.3, 1] }}
+                    className="secondary-card p-8 sm:p-10 flex flex-col justify-between">
                     <div>
-                      <h4 className="font-heading font-bold text-base text-[var(--ink)] dark:text-white">{item.name}</h4>
-                      <p className="text-xs text-[var(--muted)] dark:text-slate-400 font-medium">{item.role}</p>
+                      <div className="flex items-center gap-1.5 mb-6 text-amber-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-amber-400" />
+                        ))}
+                      </div>
+                      <p className="text-[var(--ink)] dark:text-slate-300 text-sm lg:text-base leading-relaxed italic mb-8">
+                        "{item.text}"
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4 pt-6 border-t border-[var(--border)] dark:border-slate-800">
+                      <img src={avatar} alt={item.name} loading="lazy" decoding="async"
+                        className="avatar-img w-12 h-12 rounded-full object-cover border-2 border-[var(--brand)] shadow-md" />
+                      <div>
+                        <h4 className="font-heading font-bold text-base text-[var(--ink)] dark:text-white">{item.name}</h4>
+                        <p className="text-xs text-[var(--muted)] dark:text-slate-400 font-medium">{item.role}</p>
+                      </div>
+                    </div>
+                  </SpotlightCard>
+                );
+              })}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={vp}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="relative rounded-3xl p-8 sm:p-12 bg-white dark:bg-slate-900 border border-[var(--brand)]/30 dark:border-[var(--brand)]/25 shadow-2xl overflow-hidden">
+                <div className="absolute top-0 right-0 w-72 h-72 bg-[var(--brand)]/10 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-10">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center shrink-0 border border-[var(--brand)]/30 shadow-inner">
+                    <ShieldCheck className="w-10 h-10 sm:w-12 sm:h-12" />
+                  </div>
+
+                  <div className="flex-1 text-center md:text-start">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--soft)] text-[var(--brand)] text-xs font-bold mb-4 border border-[var(--brand)]/25">
+                      <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-pulse" />
+                      {isRTL ? "خصوصية وسرية بيانات المنشآت الطبية" : "Medical Facilities Data Privacy & NDA Protected"}
+                    </div>
+
+                    <p className="text-[var(--ink)] dark:text-slate-200 text-base sm:text-lg lg:text-xl font-medium leading-relaxed mb-6">
+                      {t.testimonialsSection.text}
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                      <a
+                        href={`https://wa.me/201033844561?text=${encodeURIComponent(isRTL ? "مرحباً، أود الاستفسار عن الأنظمة وطلب مكالمة مرجعية (Reference Call) وعرض تجريبي." : "Hello, I would like to inquire about your systems and request a Reference Call & Demo.")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-heading font-black text-sm text-white brand-green-gradient shadow-lg hover:opacity-95 transition-opacity focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
+                      >
+                        <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                        </svg>
+                        <span>{t.testimonialsSection.ctaWhatsapp}</span>
+                      </a>
+                      <a
+                        href="#contact"
+                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-heading font-bold text-sm text-[var(--ink)] dark:text-slate-300 bg-[var(--soft)] dark:bg-slate-800 hover:opacity-90 border border-[var(--border)] dark:border-slate-700 transition-all focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
+                      >
+                        <span>{t.testimonialsSection.cta}</span>
+                      </a>
                     </div>
                   </div>
-                </SpotlightCard>
-              );
-            })}
-          </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -2159,13 +2274,30 @@ export default function AgencyWebsite() {
               <div className="space-y-4">
                 <button onClick={handleCopyEmail}
                   className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10
-                    hover:border-[var(--brand)] transition-colors w-full text-right group focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                  <Mail className="w-5 h-5 text-[var(--brand)]" />
+                    hover:border-[var(--brand)] transition-colors w-full text-start group focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
+                  <Mail className="w-5 h-5 text-[var(--brand)] shrink-0" />
                   <span className="text-sm font-semibold text-slate-200 flex-1">{EMAIL}</span>
-                  <Copy className="w-4 h-4 text-slate-400 group-hover:text-white" />
+                  <Copy className="w-4 h-4 text-slate-400 group-hover:text-white shrink-0" />
                 </button>
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10
+                    hover:border-[#25D366] transition-colors w-full text-start group focus-visible:ring-2 focus-visible:ring-[#25D366]"
+                >
+                  <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5 text-white fill-current" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                  </div>
+                  <div className="flex-1 text-start">
+                    <span className="text-sm font-semibold text-slate-200 dir-ltr inline-block font-mono">{PHONE}</span>
+                    <span className="block text-[11px] text-slate-400">{isRTL ? "واتساب مبيعات ودعم فني" : "WhatsApp Business & Support"}</span>
+                  </div>
+                </a>
                 <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <MapPin className="w-5 h-5 text-[var(--brand)]" />
+                  <MapPin className="w-5 h-5 text-[var(--brand)] shrink-0" />
                   <span className="text-sm font-semibold text-slate-200">{t.contact.location}</span>
                 </div>
               </div>
@@ -2280,20 +2412,26 @@ export default function AgencyWebsite() {
               <h4 className="font-heading font-bold text-white text-sm uppercase tracking-wider mb-4">
                 {t.footer.contact}
               </h4>
-              <ul className="space-y-2.5 text-sm">
+              <ul className="space-y-3 text-sm">
                 <li>
-                  <button onClick={handleCopyEmail} className="hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded">
-                    {EMAIL}
+                  <button onClick={handleCopyEmail} className="hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded flex items-center gap-2.5">
+                    <Mail className="w-4 h-4 text-[var(--brand)] shrink-0" />
+                    <span>{EMAIL}</span>
                   </button>
                 </li>
-                <li>{t.contact.location}</li>
-                <li className="pt-2 flex items-center gap-3">
-                  {t.contact.social.map((soc, i) => (
-                    <span key={i} className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10
-                      hover:border-[var(--brand)] text-slate-300 cursor-pointer">
-                      {soc}
-                    </span>
-                  ))}
+                <li>
+                  <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#25D366] transition-colors flex items-center gap-2.5 text-slate-300">
+                    <div className="w-4 h-4 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
+                      <svg className="w-2.5 h-2.5 text-white fill-current" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                      </svg>
+                    </div>
+                    <span>واتساب: <span className="dir-ltr inline-block font-mono font-bold text-white">{PHONE}</span></span>
+                  </a>
+                </li>
+                <li className="flex items-center gap-2.5 text-slate-400">
+                  <MapPin className="w-4 h-4 text-[var(--brand)] shrink-0" />
+                  <span>{t.contact.location}</span>
                 </li>
               </ul>
             </div>
@@ -2305,6 +2443,20 @@ export default function AgencyWebsite() {
         </div>
       </footer>
 
+      {/* ── FLOATING WHATSAPP BUTTON ──────────────────────────────────────── */}
+      <a
+        href={`https://wa.me/201033844561?text=${encodeURIComponent(isRTL ? "مرحباً، أود الاستفسار عن أنظمة شغال المخصصة." : "Hello, I would like to inquire about Shaghal digital systems.")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed z-50 bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#25D366] group"
+        title="WhatsApp: 01033844561"
+        aria-label="Contact on WhatsApp"
+      >
+        <svg className="w-7 h-7 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+        </svg>
+      </a>
+
       {/* ── BACK TO TOP ───────────────────────────────────────────────────── */}
       <AnimatePresence>
         {showTop && (
@@ -2313,8 +2465,8 @@ export default function AgencyWebsite() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="back-to-top-btn fixed z-50 w-12 h-12 rounded-full brand-green-gradient
-              text-white shadow-2xl hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:ring-[var(--brand)] flex items-center justify-center"
+            className="back-to-top-btn fixed z-50 bottom-24 right-6 sm:bottom-28 sm:right-8 w-12 h-12 rounded-full brand-green-gradient
+              text-white shadow-2xl hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[var(--brand)] flex items-center justify-center"
             title={t.float.top}
             aria-label="Back to top">
             <ArrowRight className="w-5 h-5 -rotate-90" />
