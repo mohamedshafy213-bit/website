@@ -1,0 +1,21 @@
+{
+  "name": "شغال | Shaghal — استوديو الأنظمة الرقمية",
+  "short_name": "شغال Shaghal",
+  "description": "استوديو تقني متخصص في تصميم وتطوير الأنظمة الرقمية والبرمجية المخصصة للشركات: نقاط البيع POS، إدارة العيادات، وإدارة المخازن.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101828",
+  "theme_color": "#101828",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
