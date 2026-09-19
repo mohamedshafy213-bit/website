@@ -76,100 +76,91 @@ function createChunk(type, data) {
   return buf;
 }
 
-// Distance to rounded rectangle
-function distToRoundedRect(px, py, rx, ry, rw, rh, rad) {
-  const cx = rx + rw / 2;
-  const cy = ry + rh / 2;
-  const dx = Math.abs(px - cx) - (rw / 2 - rad);
-  const dy = Math.abs(py - cy) - (rh / 2 - rad);
-  if (dx <= 0 && dy <= 0) return -Math.max(-dx, -dy);
-  const ox = Math.max(0, dx);
-  const oy = Math.max(0, dy);
-  return Math.sqrt(ox * ox + oy * oy);
+// Exact Signed Distance Function for a 2D rounded rectangle in 0..1 space
+function sdRoundedBox(x, y, bx, by, bw, bh, rad) {
+  const cx = bx + bw / 2;
+  const cy = by + bh / 2;
+  const qx = Math.abs(x - cx) - (bw / 2 - rad);
+  const qy = Math.abs(y - cy) - (bh / 2 - rad);
+  const ox = Math.max(qx, 0);
+  const oy = Math.max(qy, 0);
+  return Math.min(Math.max(qx, qy), 0) + Math.sqrt(ox * ox + oy * oy) - rad;
 }
 
-// Distance to circle
-function distToCircle(px, py, cx, cy, r) {
-  const dx = px - cx;
-  const dy = py - cy;
+// Distance to circle in 0..1 space
+function sdCircle(x, y, cx, cy, r) {
+  const dx = x - cx;
+  const dy = y - cy;
   return Math.sqrt(dx * dx + dy * dy) - r;
 }
 
-// Draw the Shaghal Logo onto icon canvas
+// Distance to a bar (vertical pill + circular head)
+function sdBar(u, v, barCx, circleCy, circleR, barX, barW, barY, barH) {
+  const dCirc = sdCircle(u, v, barCx, circleCy, circleR);
+  const dRec = sdRoundedBox(u, v, barX, barY, barW, barH, barW / 2);
+  return Math.min(dCirc, dRec);
+}
+
+// Draw the authentic Shaghal Logo onto icon canvas (White squircle + 2 Navy bars + 1 Emerald bar)
 function drawShaghalLogo(u, v, px, py, width, height) {
-  // Background: Sleek dark squircle (#101828 to #0D1526)
-  const pad = width * 0.04;
-  const squircleRad = width * 0.22;
-  const dSquircle = distToRoundedRect(px, py, pad, pad, width - 2 * pad, height - 2 * pad, squircleRad);
+  // Antialiasing radius in normalized units
+  const aa = 1.4 / width;
 
-  if (dSquircle > 0) {
-    return [0, 0, 0, 0]; // Transparent outside
+  // Background: Clean high-contrast white squircle (#FFFFFF)
+  const pad = 0.035;
+  const squircleRad = 0.22;
+  const dSquircle = sdRoundedBox(u, v, pad, pad, 1 - 2 * pad, 1 - 2 * pad, squircleRad);
+
+  if (dSquircle > aa) {
+    return [0, 0, 0, 0]; // Transparent outside squircle
   }
 
-  // Base background gradient: Navy Dark
-  // Subtle emerald border
-  let bgR = 16, bgG = 24, bgB = 40, bgA = 255;
-  if (dSquircle > -width * 0.03) {
-    // Border edge
-    const borderBlend = (-dSquircle) / (width * 0.03);
-    bgR = Math.round(33 * (1 - borderBlend) + bgR * borderBlend);
-    bgG = Math.round(200 * (1 - borderBlend) + bgG * borderBlend);
-    bgB = Math.round(122 * (1 - borderBlend) + bgB * borderBlend);
+  // Pure clean white background (#FFFFFF) with gentle anti-aliased edge
+  let bgR = 255, bgG = 255, bgB = 255;
+  let bgA = 255;
+  if (dSquircle > -aa) {
+    const edgeAlpha = Math.min(1, Math.max(0, -dSquircle / aa + 0.5));
+    bgA = Math.round(255 * edgeAlpha);
   }
 
-  // Logo geometric bounds in normalized coordinates (0..1)
-  // 3 rising bars:
-  // Bar 1 (Left / Cyan): cx = 0.30, cy_circle = 0.36, r = 0.055, rect: x=0.245, w=0.11, y=0.43, h=0.34
-  // Bar 2 (Middle / Deep Blue-Cyan): cx = 0.50, cy_circle = 0.28, r = 0.062, rect: x=0.435, w=0.13, y=0.36, h=0.41
-  // Bar 3 (Right / Vibrant Emerald): cx = 0.72, cy_circle = 0.20, r = 0.070, rect: x=0.645, w=0.15, y=0.29, h=0.48
-
-  // Helper for pill / bar distance
-  function dBar(barCx, circleCy, circleR, barX, barW, barY, barH) {
-    const dCirc = distToCircle(u, v, barCx, circleCy, circleR);
-    const dRec = distToRoundedRect(u, v, barX, barY, barW, barH, barW / 2);
-    return Math.min(dCirc, dRec);
-  }
-
-  // Bar 1
-  const d1 = dBar(0.29, 0.38, 0.056, 0.234, 0.112, 0.45, 0.32);
-  // Bar 2
-  const d2 = dBar(0.50, 0.30, 0.064, 0.435, 0.130, 0.38, 0.39);
-  // Bar 3 (Emerald)
-  const d3 = dBar(0.72, 0.21, 0.072, 0.645, 0.150, 0.30, 0.47);
-
-  // Anti-aliasing width in normalized units
-  const aa = 1.2 / width;
+  // 3 rising bars aligned at the bottom (y = 0.79):
+  // Bar 1 (Left / Shortest: Navy #101828)
+  const d1 = sdBar(u, v, 0.285, 0.39, 0.060, 0.225, 0.120, 0.46, 0.33);
+  // Bar 2 (Middle / Medium: Deep Navy #0D2240)
+  const d2 = sdBar(u, v, 0.500, 0.31, 0.068, 0.435, 0.130, 0.39, 0.40);
+  // Bar 3 (Right / Tallest: Signature Emerald Green #21C87A)
+  const d3 = sdBar(u, v, 0.715, 0.23, 0.076, 0.642, 0.146, 0.32, 0.47);
 
   let r = bgR, g = bgG, b = bgB, a = bgA;
 
-  // Render Bar 1 (Electric Blue / Cyan)
+  // Render Bar 1 (Shortest / Brand Dark Navy #101828)
   if (d1 < aa) {
-    const alpha = Math.min(1, Math.max(0, (aa - d1) / (2 * aa)));
-    const barR = 56, barG = 189, barB = 248; // #38BDF8
+    const alpha = Math.min(1, Math.max(0, -d1 / aa + 0.5));
+    const barR = 16, barG = 24, barB = 40; // #101828
     r = Math.round(barR * alpha + r * (1 - alpha));
     g = Math.round(barG * alpha + g * (1 - alpha));
     b = Math.round(barB * alpha + b * (1 - alpha));
   }
 
-  // Render Bar 2 (Deep Tech Cyan / Light Navy)
+  // Render Bar 2 (Middle / Deep Tech Navy #0D2240)
   if (d2 < aa) {
-    const alpha = Math.min(1, Math.max(0, (aa - d2) / (2 * aa)));
-    const barR = 14, barG = 165, barB = 233; // #0EA5E9
+    const alpha = Math.min(1, Math.max(0, -d2 / aa + 0.5));
+    const barR = 13, barG = 34, barB = 64; // #0D2240
     r = Math.round(barR * alpha + r * (1 - alpha));
     g = Math.round(barG * alpha + g * (1 - alpha));
     b = Math.round(barB * alpha + b * (1 - alpha));
   }
 
-  // Render Bar 3 (Signature Emerald #21C87A)
+  // Render Bar 3 (Tallest / Signature Emerald Green #21C87A)
   if (d3 < aa) {
-    const alpha = Math.min(1, Math.max(0, (aa - d3) / (2 * aa)));
+    const alpha = Math.min(1, Math.max(0, -d3 / aa + 0.5));
     const barR = 33, barG = 200, barB = 122; // #21C87A
     r = Math.round(barR * alpha + r * (1 - alpha));
     g = Math.round(barG * alpha + g * (1 - alpha));
     b = Math.round(barB * alpha + b * (1 - alpha));
   }
 
-  return [r, g, b, 255];
+  return [r, g, b, a];
 }
 
 // Generate ICO file containing multiple PNG images

@@ -5,7 +5,7 @@
       .bar1-r { fill: #101828; }
       .bar2-c { fill: #0D2240; }
       .bar2-r { fill: #0D2240; }
-      .bar3-c { fill: #1A5C55; }
+      .bar3-c { fill: #21C87A; }
       .bar3-r { fill: #21C87A; }
       @media (prefers-color-scheme: dark) {
         .bar1-c { fill: #38BDF8; }

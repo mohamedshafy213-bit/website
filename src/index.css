@@ -537,4 +537,29 @@ img {
     margin-bottom: 16px;
   }
 }
+
+/* ── Mobile Performance & Silky 60fps Scroll Optimization ──────────────────── */
+@media (max-width: 768px) {
+  /* Disable expensive continuous full-screen scan beam on mobile */
+  .cyber-scan-beam {
+    display: none !important;
+  }
+
+  /* GPU-accelerated touch scrolling */
+  html, body {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Content-visibility to skip offscreen layout/paint on long pages */
+  #services,
+  #how-we-work,
+  #work,
+  #testimonials,
+  #faq,
+  #contact {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 650px;
+  }
+}
+
 

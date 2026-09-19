@@ -92,6 +92,8 @@ function StatCard({ n, l }) {
 // ── Interactive Spotlight Card (Mercury SaaS dynamic card) ─────────────────
 function SpotlightCard({ children, className = "", onClick, ...props }) {
   const handleMouseMove = useCallback((e) => {
+    // Skip on touch/mobile devices to eliminate scroll layout thrashing
+    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches) return;
     const rect = e.currentTarget.getBoundingClientRect();
     e.currentTarget.style.setProperty("--mouse-x", `${(e.clientX - rect.left).toFixed(1)}px`);
     e.currentTarget.style.setProperty("--mouse-y", `${(e.clientY - rect.top).toFixed(1)}px`);
@@ -105,7 +107,7 @@ function SpotlightCard({ children, className = "", onClick, ...props }) {
       {...props}
     >
       <div
-        className="pointer-events-none absolute -inset-px rounded-[28px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+        className="pointer-events-none absolute -inset-px rounded-[28px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hidden sm:block"
         style={{
           background: "radial-gradient(600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), rgba(var(--brand-rgb), 0.12), transparent 65%)",
           willChange: "opacity",
@@ -120,12 +122,12 @@ function SpotlightCard({ children, className = "", onClick, ...props }) {
 function ElegantTechBackground({ darkMode }) {
   return (
     <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden" aria-hidden="true">
-      {/* 1. Subtle Cyan / Blue Laser Scan Light Beam */}
+      {/* 1. Subtle Cyan / Blue Laser Scan Light Beam (hidden on mobile via CSS) */}
       <div className="cyber-scan-beam" />
 
       {/* 2. Ambient Soft Glow Orbs */}
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[850px] h-[450px] rounded-full blur-[120px] opacity-25 dark:opacity-35 pointer-events-none"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[340px] sm:w-[600px] md:w-[850px] h-[220px] sm:h-[400px] rounded-full blur-3xl sm:blur-[120px] opacity-25 dark:opacity-35 pointer-events-none"
         style={{
           background: darkMode
             ? "radial-gradient(ellipse at center, rgba(45, 212, 191, 0.25) 0%, rgba(56, 189, 248, 0.15) 50%, transparent 70%)"
@@ -133,18 +135,8 @@ function ElegantTechBackground({ darkMode }) {
         }}
       />
 
-      {/* 3. Subtle Constellation Tech Dots */}
-      <svg className="absolute inset-0 w-full h-full opacity-45 dark:opacity-65" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="dotGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        {/* Constellation lines */}
+      {/* 3. Subtle Constellation Tech Dots (optimized for desktop/tablet; hidden on small mobile to preserve smooth 60fps scrolling) */}
+      <svg className="absolute inset-0 w-full h-full opacity-45 dark:opacity-65 hidden sm:block" xmlns="http://www.w3.org/2000/svg">
         <line x1="12%" y1="18%" x2="22%" y2="28%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
         <line x1="22%" y1="28%" x2="16%" y2="44%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
         <line x1="82%" y1="15%" x2="90%" y2="30%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
@@ -152,17 +144,16 @@ function ElegantTechBackground({ darkMode }) {
         <line x1="78%" y1="75%" x2="88%" y2="85%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
         <line x1="10%" y1="70%" x2="20%" y2="82%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
 
-        {/* Constellation pulsing dots */}
-        <circle cx="12%" cy="18%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3s" }} />
+        <circle cx="12%" cy="18%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3s" }} />
         <circle cx="22%" cy="28%" r="2" fill="#2DD4BF" />
         <circle cx="16%" cy="44%" r="2.5" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "4s" }} />
-        <circle cx="82%" cy="15%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3.5s" }} />
+        <circle cx="82%" cy="15%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3.5s" }} />
         <circle cx="90%" cy="30%" r="2" fill="#2DD4BF" />
         <circle cx="78%" cy="42%" r="2.5" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "4.5s" }} />
         <circle cx="10%" cy="70%" r="2" fill="#2DD4BF" />
-        <circle cx="20%" cy="82%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3.2s" }} />
+        <circle cx="20%" cy="82%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3.2s" }} />
         <circle cx="78%" cy="75%" r="2.5" fill="#2DD4BF" />
-        <circle cx="88%" cy="85%" r="3" fill="#38BDF8" filter="url(#dotGlow)" className="animate-pulse" style={{ animationDuration: "3.8s" }} />
+        <circle cx="88%" cy="85%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3.8s" }} />
         <circle cx="50%" cy="12%" r="2" fill="#38BDF8" />
         <circle cx="52%" cy="65%" r="2" fill="#2DD4BF" />
       </svg>
@@ -170,7 +161,7 @@ function ElegantTechBackground({ darkMode }) {
   );
 }
 
-// ── Center Loading Splash Screen with Authentic Logo Dots Orbit ────────────
+// ── Center Loading Splash Screen with Authentic Logo Dots Orbit (Responsive & High Performance) ──
 function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
   const [displayProgress, setDisplayProgress] = useState(0);
 
@@ -201,7 +192,7 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
 
   // Natural home positions of the 3 dots on top of the bars
   const HOME_DOTS = [
-    { x: 37, y: 62 },  // Dot 0 (Left bar: higher bottom / elevated)
+    { x: 37, y: 62 },  // Dot 0 (Left bar)
     { x: 95, y: 45 },  // Dot 1 (Middle bar)
     { x: 153, y: 31 }, // Dot 2 (Right bar: green)
   ];
@@ -213,12 +204,13 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
     Math.PI * 1.15 + (4 * Math.PI) / 3,
   ];
 
+  // Snappy, modern timeline (~1.85s total)
   const DOCK_TIMELINE = [
-    { start: 1.80, end: 2.15 },
-    { start: 2.25, end: 2.60 },
-    { start: 2.70, end: 3.05 },
+    { start: 0.95, end: 1.18 },
+    { start: 1.18, end: 1.40 },
+    { start: 1.40, end: 1.62 },
   ];
-  const OMEGA = 8.2;
+  const OMEGA = 11.2;
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -242,12 +234,12 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
       const dockStart = DOCK_TIMELINE[i].start;
       const dockEnd = DOCK_TIMELINE[i].end;
 
-      if (elapsed < 0.5) {
+      if (elapsed < 0.25) {
         return { x: home.x, y: home.y, scale: 1 };
       }
 
-      if (elapsed < 0.85) {
-        const u = (elapsed - 0.5) / 0.35;
+      if (elapsed < 0.50) {
+        const u = (elapsed - 0.25) / 0.25;
         const ease = u * u * (3 - 2 * u);
         const targetX = CENTER_X + ORBIT_R * Math.cos(baseAngle);
         const targetY = CENTER_Y + ORBIT_R * Math.sin(baseAngle);
@@ -259,7 +251,7 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
       }
 
       if (elapsed < dockStart) {
-        const currentAngle = baseAngle + OMEGA * (elapsed - 0.85);
+        const currentAngle = baseAngle + OMEGA * (elapsed - 0.50);
         return {
           x: CENTER_X + ORBIT_R * Math.cos(currentAngle),
           y: CENTER_Y + ORBIT_R * Math.sin(currentAngle),
@@ -268,7 +260,7 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
       }
 
       if (elapsed < dockEnd) {
-        const leaveAngle = baseAngle + OMEGA * (dockStart - 0.85);
+        const leaveAngle = baseAngle + OMEGA * (dockStart - 0.50);
         const startX = CENTER_X + ORBIT_R * Math.cos(leaveAngle);
         const startY = CENTER_Y + ORBIT_R * Math.sin(leaveAngle);
 
@@ -283,8 +275,8 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
 
       const timeSinceLand = elapsed - dockEnd;
       let bounce = 0;
-      if (timeSinceLand < 0.28) {
-        bounce = Math.sin((timeSinceLand / 0.28) * Math.PI) * 0.24;
+      if (timeSinceLand < 0.20) {
+        bounce = Math.sin((timeSinceLand / 0.20) * Math.PI) * 0.2;
       }
       return {
         x: home.x,
@@ -308,12 +300,12 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
     dot2Y.set(s2.y);
     dot2Scale.set(s2.scale);
 
-    orbitDashOffset.set(elapsed * 90);
+    orbitDashOffset.set(elapsed * 120);
     let ringOpacity = 0;
-    if (elapsed < 0.5) {
+    if (elapsed < 0.25) {
       ringOpacity = 0;
-    } else if (elapsed < 0.85) {
-      ringOpacity = ((elapsed - 0.5) / 0.35) * 0.85;
+    } else if (elapsed < 0.50) {
+      ringOpacity = ((elapsed - 0.25) / 0.25) * 0.85;
     } else if (elapsed < DOCK_TIMELINE[0].end) {
       ringOpacity = 0.85;
     } else if (elapsed < DOCK_TIMELINE[1].end) {
@@ -326,22 +318,22 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
     orbitOpacity.set(ringOpacity);
 
     let prog = 0;
-    if (elapsed < 0.5) {
-      prog = Math.floor((elapsed / 0.5) * 15);
-    } else if (elapsed < 0.85) {
-      prog = 15 + Math.floor(((elapsed - 0.5) / 0.35) * 12);
+    if (elapsed < 0.25) {
+      prog = Math.floor((elapsed / 0.25) * 20);
+    } else if (elapsed < 0.50) {
+      prog = 20 + Math.floor(((elapsed - 0.25) / 0.25) * 18);
     } else if (elapsed < DOCK_TIMELINE[0].end) {
-      prog = 27 + Math.floor(((elapsed - 0.85) / (DOCK_TIMELINE[0].end - 0.85)) * 38);
+      prog = 38 + Math.floor(((elapsed - 0.50) / (DOCK_TIMELINE[0].end - 0.50)) * 32);
     } else if (elapsed < DOCK_TIMELINE[1].end) {
-      prog = 65 + Math.floor(((elapsed - DOCK_TIMELINE[0].end) / (DOCK_TIMELINE[1].end - DOCK_TIMELINE[0].end)) * 18);
+      prog = 70 + Math.floor(((elapsed - DOCK_TIMELINE[0].end) / (DOCK_TIMELINE[1].end - DOCK_TIMELINE[0].end)) * 16);
     } else if (elapsed < DOCK_TIMELINE[2].end) {
-      prog = 83 + Math.floor(((elapsed - DOCK_TIMELINE[1].end) / (DOCK_TIMELINE[2].end - DOCK_TIMELINE[1].end)) * 17);
+      prog = 86 + Math.floor(((elapsed - DOCK_TIMELINE[1].end) / (DOCK_TIMELINE[2].end - DOCK_TIMELINE[1].end)) * 14);
     } else {
       prog = 100;
     }
     setDisplayProgress(Math.min(prog, 100));
 
-    if (elapsed >= 3.35) {
+    if (elapsed >= 1.85) {
       if (!finishedRef.current) {
         finishedRef.current = true;
         setDisplayProgress(100);
@@ -350,30 +342,30 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
     }
   });
 
-  const navyColor = darkMode ? "#FFFFFF" : "#141C3C";
+  const navyColor = darkMode ? "#38BDF8" : "#101828";
   const greenColor = "var(--brand, #21C87A)";
-  const greenDotColor = darkMode ? "var(--brand, #21C87A)" : "#0D3B4C";
+  const greenDotColor = "var(--brand, #21C87A)";
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
-      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden select-none transition-colors duration-500 ${
+      exit={{ opacity: 0, scale: 1.03, filter: "blur(6px)" }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed inset-0 h-[100dvh] w-screen z-[9999] flex flex-col items-center justify-center px-4 py-6 overflow-hidden select-none touch-none overscroll-none transition-colors duration-500 ${
         darkMode ? "bg-[#090E1A] text-white" : "bg-[#F8FAFC] text-[#101828]"
       }`}
     >
+      {/* Background soft ambient blur (optimized size for mobile GPUs) */}
       <div
-        className={`absolute w-[540px] h-[540px] rounded-full blur-[140px] pointer-events-none transition-colors duration-500 ${
+        className={`absolute w-64 h-64 sm:w-[420px] sm:h-[420px] rounded-full blur-3xl sm:blur-[120px] pointer-events-none transition-colors duration-500 ${
           darkMode ? "bg-[var(--brand)]/15" : "bg-[var(--brand)]/12"
         }`}
       />
 
-      <div className="relative w-[280px] h-[280px] sm:w-[330px] sm:h-[330px] flex items-center justify-center mb-6">
-        <motion.div
-          animate={{ scale: [0.94, 1.08, 0.94], opacity: [0.35, 0.65, 0.35] }}
-          transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-          className="absolute w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[var(--brand)]/25 blur-2xl pointer-events-none"
+      {/* SVG Container: responsive width & height max bounds so it never clips on small mobile screens */}
+      <div className="relative w-[190px] h-[190px] xs:w-[230px] xs:h-[230px] sm:w-[280px] sm:h-[280px] max-h-[30vh] flex items-center justify-center mb-4 sm:mb-6 shrink-0">
+        <div
+          className="absolute w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-[var(--brand)]/20 blur-xl pointer-events-none"
         />
 
         <svg
@@ -382,15 +374,7 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            <filter id="dot-orbit-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor={darkMode ? "#21C87A" : "#1BB36B"} floodOpacity="0.6" />
-            </filter>
-            <filter id="navy-dot-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={darkMode ? "#FFFFFF" : "#141C3C"} floodOpacity="0.4" />
-            </filter>
-          </defs>
-
+          {/* Orbit rings */}
           <motion.circle
             cx={CENTER_X}
             cy={CENTER_Y}
@@ -417,10 +401,11 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
             }}
           />
 
+          {/* 3 Rising Bars */}
           <motion.g
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.1 }}
+            transition={{ type: "spring", stiffness: 140, damping: 16 }}
           >
             <rect
               x={15}
@@ -450,6 +435,7 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
             />
           </motion.g>
 
+          {/* 3 Orbiting & Docking Dots */}
           <motion.circle
             cx={dot0X}
             cy={dot0Y}
@@ -460,7 +446,6 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
               originX: "50%",
               originY: "50%",
             }}
-            filter="url(#navy-dot-glow)"
             className="transition-colors duration-500"
           />
 
@@ -474,7 +459,6 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
               originX: "50%",
               originY: "50%",
             }}
-            filter="url(#navy-dot-glow)"
             className="transition-colors duration-500"
           />
 
@@ -488,20 +472,19 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
               originX: "50%",
               originY: "50%",
             }}
-            filter="url(#dot-orbit-glow)"
             className="transition-colors duration-500"
           />
         </svg>
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.5 }}
-        className="text-center mb-6 z-10"
+        transition={{ delay: 0.15, duration: 0.35 }}
+        className="text-center mb-4 sm:mb-6 z-10 shrink-0"
       >
         <h2
-          className={`font-heading font-black text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2 ${
+          className={`font-heading font-black text-xl sm:text-2xl md:text-3xl tracking-tight flex items-center justify-center gap-2 ${
             darkMode ? "text-white" : "text-[#101828]"
           }`}
         >
@@ -509,13 +492,13 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
           <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-ping" />
         </h2>
         <p
-          className={`text-xs sm:text-sm font-bold tracking-widest uppercase mt-1 text-[var(--brand)]`}
+          className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mt-1 text-[var(--brand)]"
         >
           {lang === "ar" ? "استوديو الأنظمة الرقمية" : "Digital Systems Studio"}
         </p>
       </motion.div>
 
-      <div className="w-52 sm:w-60 z-10 flex flex-col items-center gap-2">
+      <div className="w-48 xs:w-56 sm:w-60 z-10 flex flex-col items-center gap-2 shrink-0">
         <div
           className={`w-full h-1.5 rounded-full overflow-hidden p-[1px] relative border transition-colors duration-500 ${
             darkMode ? "bg-slate-800/80 border-white/10" : "bg-slate-200/90 border-slate-300/60"
@@ -526,7 +509,7 @@ function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
             style={{ width: `${displayProgress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between w-full text-[11px] font-mono font-bold px-1">
+        <div className="flex items-center justify-between w-full text-[10px] xs:text-[11px] font-mono font-bold px-1">
           <span className="text-[var(--brand)]">
             {displayProgress < 100
               ? (lang === "ar" ? "جاري تهيئة الأنظمة..." : "Initializing systems...")
@@ -559,7 +542,7 @@ function BrandLogo({ className = "w-10 h-10", isDark = false }) {
       <rect x="51" y="43" width="18" height="73" rx="9" fill={isDark ? "#0D2240" : "#0D2240"} stroke={isDark ? "#38BDF8" : "none"} strokeWidth={isDark ? 1 : 0} />
 
       {/* Bar 3 (Tallest: Signature Emerald Green) */}
-      <circle cx="100" cy="24" r="10" fill={isDark ? "#4EEDB0" : "#1A5C55"} />
+      <circle cx="100" cy="24" r="10" fill={isDark ? "#4EEDB0" : "#21C87A"} />
       <rect x="90" y="36" width="20" height="80" rx="10" fill="#21C87A" />
     </svg>
   );
@@ -591,10 +574,22 @@ export default function AgencyWebsite() {
   const t     = COPY[lang] || COPY.ar;
   const isRTL = lang === "ar";
   const shouldReduceMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
 
-  // Page-wide scroll progress bar
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const disableHeavyMotion = shouldReduceMotion || isMobile;
+
+  // Page-wide scroll progress bar (uses direct pageScroll on mobile to eliminate spring calculation overhead)
   const { scrollYProgress: pageScroll } = useScroll();
   const scrollProgressSpring = useSpring(pageScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const progressMotion = isMobile ? pageScroll : scrollProgressSpring;
 
 
   // Theme & Dark-mode & Lang sync
@@ -733,8 +728,8 @@ export default function AgencyWebsite() {
     return t.faqs.filter(f => f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q));
   }, [faqQuery, t.faqs]);
 
-  // Shared viewport transition prop
-  const vp = { once: true, margin: "-60px" };
+  // Shared viewport transition prop (no negative margin on mobile to ensure smooth appearance)
+  const vp = { once: true, margin: isMobile ? "0px" : "-60px" };
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 relative ${
@@ -759,7 +754,7 @@ export default function AgencyWebsite() {
       {/* ── Scroll Progress Bar (Neon Top Indicator) ───────────────── */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--brand)] via-[var(--brand-hover)] to-[var(--brand)] z-[100] origin-left shadow-[0_0_14px_rgba(var(--brand-rgb),0.9)]"
-        style={{ scaleX: scrollProgressSpring }}
+        style={{ scaleX: progressMotion }}
       />
 
       {/* ── TOAST ─────────────────────────────────────────────────────────── */}
@@ -960,8 +955,8 @@ export default function AgencyWebsite() {
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section id="hero"
         className="relative pt-16 pb-28 lg:pt-24 lg:pb-36 overflow-hidden bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern">
-        {/* Soft ambient glow with GPU-composited radial gradient */}
-        {shouldReduceMotion ? (
+        {/* Soft ambient glow with GPU-composited radial gradient (disabled on mobile for silky 60fps scrolling) */}
+        {disableHeavyMotion ? (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full pointer-events-none -z-10"
             style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
         ) : (
@@ -1242,8 +1237,8 @@ export default function AgencyWebsite() {
 
       {/* ── SERVICES ──────────────────────────────────────────────────────── */}
       <section id="services" className="py-28 lg:py-40 bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern relative overflow-hidden">
-        {/* Ambient accent glow with GPU-composited radial gradient */}
-        {shouldReduceMotion ? (
+        {/* Ambient accent glow with GPU-composited radial gradient (disabled on mobile for silky 60fps scrolling) */}
+        {disableHeavyMotion ? (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full pointer-events-none -z-10"
             style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.12) 0%, rgba(var(--brand-rgb), 0.02) 55%, transparent 70%)" }} />
         ) : (
@@ -1740,7 +1735,8 @@ export default function AgencyWebsite() {
 
       {/* ── PROCESS (DARK SECTION) ─────────────────────────────────────────── */}
       <section id="process" className="py-28 lg:py-40 bg-[#101828] text-white relative overflow-hidden tech-grid-pattern">
-        {shouldReduceMotion ? (
+        {/* Process ambient glow (disabled on mobile for silky 60fps scrolling) */}
+        {disableHeavyMotion ? (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full pointer-events-none"
             style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
         ) : (
@@ -1793,8 +1789,8 @@ export default function AgencyWebsite() {
 
       {/* ── PORTFOLIO ─────────────────────────────────────────────────────── */}
       <section id="work" className="py-28 lg:py-40 bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern relative overflow-hidden">
-        {/* Ambient accent glow with GPU-composited radial gradient */}
-        {shouldReduceMotion ? (
+        {/* Ambient accent glow with GPU-composited radial gradient (disabled on mobile for silky 60fps scrolling) */}
+        {disableHeavyMotion ? (
           <div className="absolute top-1/2 right-10 w-[600px] h-[600px] rounded-full pointer-events-none -z-10"
             style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.12) 0%, rgba(var(--brand-rgb), 0.02) 55%, transparent 70%)" }} />
         ) : (
@@ -2138,7 +2134,8 @@ export default function AgencyWebsite() {
 
       {/* ── CONTACT (DARK SECTION) ─────────────────────────────────────────── */}
       <section id="contact" className="py-20 sm:py-28 lg:py-40 bg-[#101828] text-white relative overflow-hidden">
-        {shouldReduceMotion ? (
+        {/* Contact ambient glow (disabled on mobile for silky 60fps scrolling) */}
+        {disableHeavyMotion ? (
           <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
             style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
         ) : (
