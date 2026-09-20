@@ -11,7 +11,7 @@ import {
   Mail, MapPin, Search, Plus, Globe, Sun, Moon, Menu, X,
   Star, Check, Copy, Clock, Wrench, ShieldCheck, Users,
   Compass, FileCheck2, Cpu, MonitorCheck, ChevronRight, ChevronLeft,
-  Database, Wifi, BarChart3, Palette, Receipt,
+  Database, Wifi, BarChart3, Palette,
 } from "lucide-react";
 
 import {
@@ -1164,14 +1164,10 @@ export default function AgencyWebsite() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-[var(--border)] dark:border-slate-800">
-                        <div>
-                          <span className="block text-[11px] text-[var(--muted)] dark:text-slate-400">
-                            {t.servicesSection.from}
-                          </span>
-                          <strong className="text-sm sm:text-base font-black text-[var(--ink)] dark:text-white">
-                            {srv.priceFrom}
-                          </strong>
-                        </div>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--muted)] dark:text-slate-300">
+                          <Sparkles className="w-3.5 h-3.5 text-[var(--brand)]" />
+                          {lang === "ar" ? "حل برمجي مخصص" : "Custom Solution"}
+                        </span>
                         <span className="text-xs font-bold text-[var(--brand)] flex items-center gap-1 group-hover:translate-x-[-3px] transition-transform">
                           {lang === "ar" ? "تفاصيل النظام" : "System Details"}
                           {isRTL ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
@@ -1408,12 +1404,10 @@ export default function AgencyWebsite() {
                   {/* Bottom Bar */}
                   <div className="pt-6 border-t border-[var(--border)] dark:border-slate-800 flex items-center justify-between">
                     <div>
-                      <span className="block text-[11px] text-[var(--muted)] dark:text-slate-400 uppercase font-bold">
-                        {t.servicesSection.from}
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--brand)] bg-[var(--soft)] dark:bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-[var(--brand)]/25">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {lang === "ar" ? "تصميم وتطوير مخصص" : "Tailored Development"}
                       </span>
-                      <strong className="font-heading font-black text-xl sm:text-2xl text-[var(--ink)] dark:text-white">
-                        {srv.priceFrom}
-                      </strong>
                     </div>
                     <button onClick={() => setActiveService(srv)}
                       className="px-6 py-3 rounded-full font-heading font-bold text-xs sm:text-sm
@@ -1542,133 +1536,7 @@ export default function AgencyWebsite() {
                 </div>
               )}
 
-              {/* Task A: Clinic Pricing Sheet & Packages */}
-              {activeService.pricingPlans && (
-                <div className="mb-8 pt-6 border-t border-[var(--border)] dark:border-slate-800">
-                  <h4 className="font-heading font-bold text-base sm:text-lg text-[var(--ink)] dark:text-white mb-5 flex items-center gap-2">
-                    <Receipt className="w-5 h-5 text-[var(--brand)]" />
-                    {t.serviceDetailModal.pricingLabel || (lang === "ar" ? "الباقات والأسعار المعتمدة" : "Official Plans & Pricing")}
-                  </h4>
 
-                  {/* Base Plans: 2 Columns */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    {activeService.pricingPlans.basePlans.map((plan, pIdx) => {
-                      const price = lang === "ar" ? plan.priceAr : plan.priceEn;
-                      const subtitle = lang === "ar" ? plan.subtitleAr : plan.subtitleEn;
-                      const badge = lang === "ar" ? plan.badgeAr : plan.badgeEn;
-                      const features = lang === "ar" ? plan.featuresAr : plan.featuresEn;
-
-                      return (
-                        <div
-                          key={pIdx}
-                          className={`relative p-5 sm:p-6 rounded-2xl flex flex-col justify-between transition-all ${
-                            plan.featured
-                              ? "bg-[var(--soft)]/40 dark:bg-slate-900 border-2 border-[var(--brand)] shadow-md"
-                              : "bg-[var(--bg)] dark:bg-slate-900/60 border border-[var(--border)] dark:border-slate-800"
-                          }`}
-                        >
-                          {plan.featured && badge && (
-                            <span className="absolute top-3 end-3 bg-[var(--brand)] text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                              ★ {badge}
-                            </span>
-                          )}
-
-                          <div>
-                            <h5 className="font-heading font-black text-lg sm:text-xl text-[var(--ink)] dark:text-white mb-1">
-                              {plan.name}
-                            </h5>
-                            <p className="text-xs text-[var(--muted)] dark:text-slate-400 font-medium mb-3">
-                              {subtitle}
-                            </p>
-                            <div className="font-heading font-black text-xl sm:text-2xl text-[var(--brand)] mb-5">
-                              {price}
-                            </div>
-
-                            <div className="space-y-2.5 mb-2">
-                              {features.map((feat, fIdx) => (
-                                <div key={fIdx} className="flex items-start gap-2.5 text-xs text-[var(--ink)] dark:text-slate-300">
-                                  <div className="w-4 h-4 rounded-full bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center shrink-0 mt-0.5">
-                                    <Check className="w-3 h-3 stroke-[3]" />
-                                  </div>
-                                  <span className="leading-snug">{feat}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Dental Pro Suite (Upsell Bundle) */}
-                  <div className="mb-6">
-                    <h5 className="font-heading font-bold text-xs sm:text-sm uppercase tracking-wider text-[var(--muted)] dark:text-slate-400 mb-3">
-                      {t.serviceDetailModal.dentalProLabel || (lang === "ar" ? "باقات عيادات الأسنان (Dental Pro Suite)" : "Dental Clinic Packages (Dental Pro Suite)")}
-                    </h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {activeService.pricingPlans.dentalPlans.map((dPlan, dIdx) => {
-                        const price = lang === "ar" ? dPlan.priceAr : dPlan.priceEn;
-                        const desc = lang === "ar" ? dPlan.descAr : dPlan.descEn;
-                        const note = lang === "ar" ? dPlan.noteAr : dPlan.noteEn;
-
-                        return (
-                          <div
-                            key={dIdx}
-                            className="p-4 rounded-xl bg-[var(--bg)] dark:bg-slate-900/60 border border-[var(--border)] dark:border-slate-800"
-                          >
-                            <div className="flex items-baseline justify-between gap-2 mb-1.5">
-                              <strong className="font-heading font-bold text-sm text-[var(--ink)] dark:text-white">
-                                {dPlan.name}
-                              </strong>
-                              <span className="font-heading font-black text-sm text-[var(--brand)] whitespace-nowrap">
-                                {price}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-[var(--ink)] dark:text-slate-300 leading-relaxed mb-1.5">
-                              {desc}
-                            </p>
-                            <p className="text-[10px] text-[var(--muted)] dark:text-slate-400 font-semibold italic">
-                              {note}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Add-ons List */}
-                  <div className="mb-4">
-                    <h5 className="font-heading font-bold text-xs sm:text-sm uppercase tracking-wider text-[var(--muted)] dark:text-slate-400 mb-3">
-                      {t.serviceDetailModal.addonsLabel || (lang === "ar" ? "الإضافات التخصصية الاختيارية (Add-ons)" : "Optional Specialized Add-ons")}
-                    </h5>
-                    <div className="rounded-xl border border-[var(--border)] dark:border-slate-800 bg-[var(--bg)] dark:bg-slate-900/50 overflow-hidden divide-y divide-[var(--border)] dark:divide-slate-800">
-                      {activeService.pricingPlans.addons.map((addon, aIdx) => {
-                        const name = lang === "ar" ? addon.nameAr : addon.nameEn;
-                        const price = lang === "ar" ? addon.priceAr : addon.priceEn;
-
-                        return (
-                          <div
-                            key={aIdx}
-                            className="p-3 sm:px-4 flex items-center justify-between gap-3 text-xs"
-                          >
-                            <span className="font-medium text-[var(--ink)] dark:text-slate-300">
-                              {name}
-                            </span>
-                            <strong className="font-heading font-bold text-[var(--brand)] text-end shrink-0">
-                              {price}
-                            </strong>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Footer Note */}
-                  <p className="text-[11px] text-[var(--muted)] dark:text-slate-400 italic leading-relaxed text-center px-2">
-                    {lang === "ar" ? activeService.pricingPlans.footerNoteAr : activeService.pricingPlans.footerNoteEn}
-                  </p>
-                </div>
-              )}
 
               {/* Bottom CTA Row */}
               <div className="flex gap-3 pt-4 border-t border-[var(--border)] dark:border-slate-800">
