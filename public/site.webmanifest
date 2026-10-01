@@ -4,8 +4,8 @@
   "description": "استوديو تقني متخصص في تصميم وتطوير الأنظمة الرقمية والبرمجية المخصصة للشركات: نقاط البيع POS، إدارة العيادات، وإدارة المخازن.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#101828",
-  "theme_color": "#101828",
+  "background_color": "#0D1B2A",
+  "theme_color": "#163D68",
   "icons": [
     {
       "src": "/favicon-192x192.png",

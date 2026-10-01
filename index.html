@@ -11,7 +11,7 @@
   <meta name="description" content="شغال (Shaghal) — شركة برمجيات (Software House) متخصصة في تطوير أنظمة نقاط البيع POS، إدارة العيادات Clinics EMR، والمخازن بدقة وكفاءة واحترافية." />
   <meta name="keywords" content="شغال, Shaghal, Software House, softwarehouse, شركة برمجيات, استوديو برمجيات, سوفت وير هاوس, POS, نظام نقاط البيع, برنامج كاشير, POS system, POS software, Clinics, clinic, عيادات, إدارة العيادات, برنامج العيادات, Clinic EMR, Clinic software, إدارة المخازن, نظام أصول وعهدة, Warehouse management, custom software Egypt" />
   <meta name="author" content="شغال | Shaghal" />
-  <meta name="theme-color" content="#101828" />
+  <meta name="theme-color" content="#FFFFFF" />
   <meta name="application-name" content="شغال" />
   <meta name="apple-mobile-web-app-title" content="شغال" />
   <meta name="format-detection" content="telephone=no" />
@@ -64,10 +64,676 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
 
+  <!-- Apply saved / system theme before first paint (avoids a light flash) -->
+  <script>
+    (function () {
+      try {
+        var s = localStorage.getItem('Aura_theme');
+        var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (d) document.documentElement.classList.add('dark');
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- ── Brand intro (plays before the app loads; pure CSS, GPU-only transforms) ──
+       Three logo people: one works on a laptop, one juggles a ball, one drinks
+       coffee. They put their things away, walk onto the "Shaghal" wordmark, tuck
+       their arms and legs in, and become the logo. Scene 2.6s + 0.5s hold + 0.4s fade = 3.5s. -->
+  <link rel="preload" as="image" href="/brand/shaghal-word-ar.svg" />
+  <link rel="preload" as="image" href="/brand/shaghal-word-en.svg" />
+  <style id="bi-css">
+    #bi { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden;
+      background: #FFFFFF; cursor: pointer; transition: opacity .4s ease, transform .4s ease; }
+    html.dark #bi { background: #08182A; }
+    #bi.bi-out { opacity: 0; transform: scale(1.02); pointer-events: none; }
+    #bi::before { content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 46%, rgba(139,200,231,.22), transparent 55%); }
+    /* background: system icons (POS / clinic / inventory) drifting around the edges */
+    .bi-bg { position: absolute; inset: 0; pointer-events: none; color: #257DB6; animation: bi-bgfade 2.6s ease-out both; }
+    html.dark .bi-bg { color: #8BC8E7; }
+    @keyframes bi-bgfade { 0% { opacity: 0; } 15%, 78% { opacity: 1; } 92%, 100% { opacity: .35; } }
+    .bi-ic { position: absolute; left: var(--l); top: var(--t); width: var(--s, 30px); height: var(--s, 30px); opacity: .26;
+      fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+      will-change: transform; animation: bi-float var(--dur, 3.2s) ease-in-out var(--d, 0s) infinite alternate; }
+    html.dark .bi-ic { opacity: .22; }
+    @keyframes bi-float {
+      from { transform: translate(0, 0) rotate(var(--r0, -6deg)); }
+      to   { transform: translate(var(--dx, 6px), var(--dy, -14px)) rotate(var(--r1, 6deg)); }
+    }
+    .bi-dot { position: absolute; left: var(--l); top: var(--t); width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+      opacity: 0; will-change: transform, opacity; animation: bi-rise 1.6s ease-out var(--d, 0s) infinite; }
+    @keyframes bi-rise { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: .45; } 100% { transform: translateY(-70px); opacity: 0; } }
+    @media (max-width: 560px) {
+      .bi-ic { --s: 22px; }
+      .bi-ic.bi-hide-sm, .bi-dot.bi-hide-sm { display: none; }
+    }
+    .bi-wrap { position: relative; width: 144px; height: 310px; transform: scale(var(--k, 1.1)); animation: bi-in .3s ease-out both; }
+    @media (max-width: 899px) { .bi-wrap { --k: .85; } }
+    @media (max-width: 560px) { .bi-wrap { --k: .56; } .bi-p1 { --x: -200px; } .bi-p2 { --x: 170px; } .bi-p3 { --x: 215px; } }
+    @keyframes bi-in { from { opacity: 0; } to { opacity: 1; } }
+    .bi-stage { position: absolute; left: 0; top: 0; width: 144px; height: 200px; }
+
+    /* floor the people walk on, and the wordmark they stand on */
+    .bi-floor { position: absolute; left: -330px; right: -330px; top: 226px; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(37,125,182,.32) 30%, rgba(37,125,182,.32) 70%, transparent);
+      animation: bi-floor 2.6s both; }
+    @keyframes bi-floor { 0%, 80% { opacity: 1; } 88%, 100% { opacity: 0; } }
+    .bi-word { position: absolute; left: 50%; top: 230px; height: 78px; max-width: none; display: none;
+      transform: translateX(-50%); animation: bi-word 2.6s both; }
+    #bi[data-lang="ar"] .bi-word-ar, #bi[data-lang="en"] .bi-word-en { display: block; }
+    .bi-word-ar { width: 302px; } .bi-word-en { width: 286px; }
+    @keyframes bi-word { 0%, 85% { transform: translateX(-50%) scale(1); } 87.5% { transform: translateX(-50%) scale(1.03); } 90%, 100% { transform: translateX(-50%) scale(1); } }
+
+    /* ── people ── */
+    .bi-p { position: absolute; bottom: 0; width: 40px; will-change: transform; transform-origin: 50% 100%;
+      animation: bi-walk 2.6s linear both; }
+    .bi-p1 { left: 0;     height: 136px; --x: -235px; }
+    .bi-p2 { left: 52px;  height: 168px; --x: 190px; }
+    .bi-p3 { left: 104px; height: 200px; --x: 250px; }
+    .bi-head { position: absolute; top: 0; left: 0; width: 40px; height: 40px; border-radius: 50%; z-index: 2; }
+    .bi-body { position: absolute; bottom: 0; left: 0; width: 40px; top: 52px; border-radius: 20px; z-index: 2; }
+    .bi-p1 .bi-head, .bi-p1 .bi-body { background: linear-gradient(90deg, #8BC8E7, #79BBE1); }
+    .bi-p2 .bi-head, .bi-p2 .bi-body { background: linear-gradient(90deg, #6EAFDA, #5A9FCF); }
+    .bi-p3 .bi-head, .bi-p3 .bi-body { background: linear-gradient(90deg, #4E97CA, #2F80B9); }
+    .bi-p1 .bi-head { animation: bi-nod 2.6s ease-in-out both; }
+
+    /* limbs start INSIDE the body (behind it), so only the part that sticks out shows */
+    .bi-arm, .bi-leg { position: absolute; z-index: 1; border-radius: 6px; will-change: transform;
+      animation-duration: 2.6s; animation-fill-mode: both; animation-timing-function: ease-in-out; }
+    .bi-arm { top: 60px; width: 9px; transform-origin: 50% 4px; }
+    .bi-arm.l { left: 6px; animation-name: bi-armL; }
+    .bi-arm.r { left: 25px; animation-name: bi-armR; }
+    .bi-leg { width: 10px; height: 40px; transform-origin: 50% 3px; }
+    .bi-leg.l { left: 9px; animation-name: bi-legL; }
+    .bi-leg.r { left: 21px; animation-name: bi-legR; }
+    .bi-p1 .bi-leg { top: 122px; }  .bi-p2 .bi-leg { top: 154px; }  .bi-p3 .bi-leg { top: 186px; }
+    .bi-p1 .bi-arm { height: 40px; --a: 32deg; } .bi-p2 .bi-arm { height: 46px; --a: 36deg; } .bi-p3 .bi-arm { height: 50px; --a: 24deg; }
+    .bi-p1 .bi-arm, .bi-p1 .bi-leg { background: #7DBDE2; }
+    .bi-p2 .bi-arm, .bi-p2 .bi-leg { background: #5C9FD0; }
+    .bi-p3 .bi-arm, .bi-p3 .bi-leg { background: #3485BD; }
+
+    /* props */
+    .bi-laptop { position: absolute; left: -10px; top: 74px; width: 60px; z-index: 3; transform-origin: 50% 100%;
+      animation: bi-prop 2.6s ease-in both; }
+    .bi-lid { margin: 0 4px; height: 36px; padding: 4px; border-radius: 5px 5px 2px 2px; background: #153D68; }
+    .bi-screen { height: 100%; border-radius: 3px; background: #EAF4FB; padding: 5px 4px; display: flex; flex-direction: column; gap: 4px; }
+    .bi-line { height: 3px; border-radius: 2px; transform-origin: 0 50%; animation: bi-type .67s linear infinite; }
+    .bi-line:nth-child(1) { width: 80%; background: #257DB6; }
+    .bi-line:nth-child(2) { width: 55%; background: #8BC8E7; animation-delay: .22s; }
+    .bi-line:nth-child(3) { width: 68%; background: #257DB6; animation-delay: .44s; }
+    .bi-base { height: 5px; border-radius: 1px 1px 4px 4px; background: #0F2A46; }
+    .bi-ball { position: absolute; left: 34px; bottom: -26px; width: 20px; height: 20px; border-radius: 50%; z-index: 3;
+      background: radial-gradient(circle at 35% 35%, #fff 0 45%, #DCEBF5 46%); border: 2px solid #257DB6;
+      will-change: transform, opacity; animation: bi-ball 2.6s both; }
+    .bi-ball::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; border: 2px solid #257DB6; border-left-color: transparent; border-bottom-color: transparent; }
+    .bi-mug { position: absolute; left: -5px; bottom: -15px; width: 18px; height: 16px; border-radius: 3px 3px 6px 6px;
+      background: #F3F8FC; border: 2px solid #153D68; will-change: transform, opacity; animation: bi-mug 2.6s ease-in-out both; }
+    .bi-mug::after { content: ""; position: absolute; right: -7px; top: 2px; width: 6px; height: 7px; border: 2px solid #153D68; border-left: 0; border-radius: 0 5px 5px 0; }
+    .bi-steam { position: absolute; bottom: 100%; width: 3px; height: 10px; border-radius: 3px; background: rgba(139,200,231,.9);
+      animation: bi-steam .71s ease-out infinite; }
+    .bi-steam:nth-child(1) { left: 4px; } .bi-steam:nth-child(2) { left: 10px; animation-delay: .36s; }
+
+    @keyframes bi-type { 0% { transform: scaleX(0); } 70%, 100% { transform: scaleX(1); } }
+    @keyframes bi-prop { 0%, 50% { transform: scale(1); opacity: 1; } 55.7%, 100% { transform: scaleY(0); opacity: 0; } }
+    @keyframes bi-steam { 0% { transform: translateY(3px) scaleY(.5); opacity: 0; } 35% { opacity: .9; } 100% { transform: translateY(-14px) scaleY(1.1); opacity: 0; } }
+    @keyframes bi-nod { 0%, 6% { transform: translateY(0); } 13% { transform: translateY(3px); } 20% { transform: translateY(0); } 27% { transform: translateY(3px); } 34% { transform: translateY(0); } 41% { transform: translateY(3px); } 50%, 100% { transform: translateY(0); } }
+
+    /* mug counter-rotates to stay upright, tilts while sipping, then is put away */
+    @keyframes bi-mug {
+      0%, 8% { transform: rotate(24deg); opacity: 1; }
+      14% { transform: rotate(165deg); } 16%, 20% { transform: rotate(140deg); } 22% { transform: rotate(165deg); }
+      28%, 34% { transform: rotate(24deg); }
+      40% { transform: rotate(165deg); } 42% { transform: rotate(142deg); } 44% { transform: rotate(165deg); }
+      50% { transform: rotate(24deg); opacity: 1; }
+      55.7%, 100% { transform: rotate(24deg) scale(.4); opacity: 0; }
+    }
+    /* ball juggled 4 times off the right foot, then kicked away */
+    @keyframes bi-ball {
+      0%, 9.5% { transform: translate(0, 0) rotate(0); opacity: 1; animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+      15.5% { transform: translate(-6px, -118px) rotate(180deg); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+      21.5% { transform: translate(0, 0) rotate(360deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+      27.5% { transform: translate(-6px, -118px) rotate(540deg); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+      33.5% { transform: translate(0, 0) rotate(720deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+      39.5% { transform: translate(-6px, -118px) rotate(900deg); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+      45.5%, 50.5% { transform: translate(0, 0) rotate(1080deg); opacity: 1; animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+      55.7%, 100% { transform: translate(90px, -190px) rotate(1300deg); opacity: 0; }
+    }
+    /* ── excited hop + run: sampled from simple physics (accelerate, bounce, lean, brake) ── */
+    @keyframes bi-walk-1 {
+      0.00% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      56.36% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      58.64% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1.07, .9); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+      61.36% { transform: translate(calc(var(--x) * 1), -30px) rotate(-3deg) scale(.96, 1.06); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+      63.86% { transform: translate(calc(var(--x) * 1), 0) rotate(4deg) scale(1.06, .93); animation-timing-function: linear; }
+      64.43% { transform: translate(calc(var(--x) * 0.977), -6.465px) rotate(3.061deg) scale(1, 1); animation-timing-function: linear; }
+      65.00% { transform: translate(calc(var(--x) * 0.95), -8.995px) rotate(6.122deg) scale(1, 1); animation-timing-function: linear; }
+      65.57% { transform: translate(calc(var(--x) * 0.919), -6.051px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      66.14% { transform: translate(calc(var(--x) * 0.88), -0.577px) rotate(9deg) scale(1.034, 0.96); animation-timing-function: linear; }
+      66.70% { transform: translate(calc(var(--x) * 0.832), -6.853px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      67.27% { transform: translate(calc(var(--x) * 0.776), -8.958px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      67.84% { transform: translate(calc(var(--x) * 0.711), -5.611px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      68.41% { transform: translate(calc(var(--x) * 0.64), -1.151px) rotate(9deg) scale(1.022, 0.974); animation-timing-function: linear; }
+      68.98% { transform: translate(calc(var(--x) * 0.563), -7.213px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      69.55% { transform: translate(calc(var(--x) * 0.484), -8.885px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      70.11% { transform: translate(calc(var(--x) * 0.406), -5.149px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      70.68% { transform: translate(calc(var(--x) * 0.331), -1.72px) rotate(9deg) scale(1.014, 0.983); animation-timing-function: linear; }
+      71.25% { transform: translate(calc(var(--x) * 0.262), -7.543px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      71.82% { transform: translate(calc(var(--x) * 0.2), -8.774px) rotate(9deg) scale(1, 1); animation-timing-function: linear; }
+      72.39% { transform: translate(calc(var(--x) * 0.148), -4.666px) rotate(9deg) scale(1.001, 0.999); animation-timing-function: linear; }
+      72.95% { transform: translate(calc(var(--x) * 0.104), -2.283px) rotate(7.514deg) scale(1.009, 0.99); animation-timing-function: linear; }
+      73.52% { transform: translate(calc(var(--x) * 0.068), -7.842px) rotate(5.427deg) scale(1, 1); animation-timing-function: linear; }
+      74.09% { transform: translate(calc(var(--x) * 0.039), -8.628px) rotate(3.34deg) scale(1, 1); animation-timing-function: linear; }
+      74.66% { transform: translate(calc(var(--x) * 0.014), -4.163px) rotate(1.252deg) scale(1.001, 0.999); animation-timing-function: linear; }
+      75.00% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1.04, .95); animation-timing-function: linear; }
+      75.73% { transform: translate(calc(var(--x) * 0 + 2.057px), 0) rotate(-2.057deg) scale(1.04, .95); animation-timing-function: linear; }
+      76.45% { transform: translate(calc(var(--x) * 0 + 3.329px), 0) rotate(-3.329deg) scale(1, 1); animation-timing-function: linear; }
+      77.18% { transform: translate(calc(var(--x) * 0 + 3.329px), 0) rotate(-3.329deg) scale(1, 1); animation-timing-function: linear; }
+      77.91% { transform: translate(calc(var(--x) * 0 + 2.057px), 0) rotate(-2.057deg) scale(1, 1); animation-timing-function: linear; }
+      78.64% { transform: translate(calc(var(--x) * 0 + 0px), 0) rotate(0deg) scale(1, 1); animation-timing-function: linear; }
+      79.55% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      85.23% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      87.50% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1.04, .96); animation-timing-function: ease-in-out; }
+      89.77% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      100.00% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-legL-1 {
+      0.00% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.36% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      58.64% { transform: rotate(12deg) scaleY(.92); animation-timing-function: ease-in-out; }
+      61.36% { transform: rotate(2deg) scaleY(1); animation-timing-function: ease-in-out; }
+      63.86% { transform: rotate(10deg) scaleY(.94); animation-timing-function: linear; }
+      64.43% { transform: rotate(12.183deg) scaleY(0.677); animation-timing-function: linear; }
+      65.00% { transform: rotate(14.995deg) scaleY(0.55); animation-timing-function: linear; }
+      65.57% { transform: rotate(11.723deg) scaleY(0.697); animation-timing-function: linear; }
+      66.14% { transform: rotate(4.744deg) scaleY(1); animation-timing-function: linear; }
+      66.70% { transform: rotate(1.954deg) scaleY(1); animation-timing-function: linear; }
+      67.27% { transform: rotate(1.018deg) scaleY(1); animation-timing-function: linear; }
+      67.84% { transform: rotate(2.506deg) scaleY(1); animation-timing-function: linear; }
+      68.41% { transform: rotate(6.279deg) scaleY(0.942); animation-timing-function: linear; }
+      68.98% { transform: rotate(13.014deg) scaleY(0.639); animation-timing-function: linear; }
+      69.55% { transform: rotate(14.872deg) scaleY(0.556); animation-timing-function: linear; }
+      70.11% { transform: rotate(10.721deg) scaleY(0.743); animation-timing-function: linear; }
+      70.68% { transform: rotate(4.235deg) scaleY(1); animation-timing-function: linear; }
+      71.25% { transform: rotate(1.648deg) scaleY(1); animation-timing-function: linear; }
+      71.82% { transform: rotate(1.1deg) scaleY(1); animation-timing-function: linear; }
+      72.39% { transform: rotate(2.926deg) scaleY(1); animation-timing-function: linear; }
+      72.95% { transform: rotate(7.537deg) scaleY(0.886); animation-timing-function: linear; }
+      73.52% { transform: rotate(13.713deg) scaleY(0.608); animation-timing-function: linear; }
+      74.09% { transform: rotate(14.587deg) scaleY(0.569); animation-timing-function: linear; }
+      74.66% { transform: rotate(9.625deg) scaleY(0.792); animation-timing-function: linear; }
+      75.00% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-legR-1 {
+      0.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.36% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      58.64% { transform: rotate(-12deg) scaleY(.92); animation-timing-function: ease-in-out; }
+      61.36% { transform: rotate(-2deg) scaleY(1); animation-timing-function: ease-in-out; }
+      63.86% { transform: rotate(-10deg) scaleY(.94); animation-timing-function: linear; }
+      64.43% { transform: rotate(-2.127deg) scaleY(1); animation-timing-function: linear; }
+      65.00% { transform: rotate(-1.002deg) scaleY(1); animation-timing-function: linear; }
+      65.57% { transform: rotate(-2.311deg) scaleY(1); animation-timing-function: linear; }
+      66.14% { transform: rotate(-5.641deg) scaleY(0.971); animation-timing-function: linear; }
+      66.70% { transform: rotate(-12.614deg) scaleY(0.657); animation-timing-function: linear; }
+      67.27% { transform: rotate(-14.954deg) scaleY(0.552); animation-timing-function: linear; }
+      67.84% { transform: rotate(-11.235deg) scaleY(0.719); animation-timing-function: linear; }
+      68.41% { transform: rotate(-4.488deg) scaleY(1); animation-timing-function: linear; }
+      68.98% { transform: rotate(-1.794deg) scaleY(1); animation-timing-function: linear; }
+      69.55% { transform: rotate(-1.051deg) scaleY(1); animation-timing-function: linear; }
+      70.11% { transform: rotate(-2.712deg) scaleY(1); animation-timing-function: linear; }
+      70.68% { transform: rotate(-6.912deg) scaleY(0.914); animation-timing-function: linear; }
+      71.25% { transform: rotate(-13.381deg) scaleY(0.623); animation-timing-function: linear; }
+      71.82% { transform: rotate(-14.749deg) scaleY(0.561); animation-timing-function: linear; }
+      72.39% { transform: rotate(-10.184deg) scaleY(0.767); animation-timing-function: linear; }
+      72.95% { transform: rotate(-3.985deg) scaleY(1); animation-timing-function: linear; }
+      73.52% { transform: rotate(-1.515deg) scaleY(1); animation-timing-function: linear; }
+      74.09% { transform: rotate(-1.165deg) scaleY(1); animation-timing-function: linear; }
+      74.66% { transform: rotate(-3.15deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-armL-1 {
+      0.00% { transform: rotate(32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.36% { transform: rotate(32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      58.64% { transform: rotate(44deg) scaleY(1); animation-timing-function: ease-in-out; }
+      61.36% { transform: rotate(160deg) scaleY(1); animation-timing-function: ease-in-out; }
+      63.86% { transform: rotate(32deg) scaleY(1); animation-timing-function: linear; }
+      64.43% { transform: rotate(20.506deg) scaleY(1); animation-timing-function: linear; }
+      65.00% { transform: rotate(16.008deg) scaleY(1); animation-timing-function: linear; }
+      65.57% { transform: rotate(21.243deg) scaleY(1); animation-timing-function: linear; }
+      66.14% { transform: rotate(33.794deg) scaleY(1); animation-timing-function: linear; }
+      66.70% { transform: rotate(53.32deg) scaleY(1); animation-timing-function: linear; }
+      67.27% { transform: rotate(59.871deg) scaleY(1); animation-timing-function: linear; }
+      67.84% { transform: rotate(49.458deg) scaleY(1); animation-timing-function: linear; }
+      68.41% { transform: rotate(29.954deg) scaleY(1); animation-timing-function: linear; }
+      68.98% { transform: rotate(19.177deg) scaleY(1); animation-timing-function: linear; }
+      69.55% { transform: rotate(16.205deg) scaleY(1); animation-timing-function: linear; }
+      70.11% { transform: rotate(22.846deg) scaleY(1); animation-timing-function: linear; }
+      70.68% { transform: rotate(37.352deg) scaleY(1); animation-timing-function: linear; }
+      71.25% { transform: rotate(55.466deg) scaleY(1); animation-timing-function: linear; }
+      71.82% { transform: rotate(59.298deg) scaleY(1); animation-timing-function: linear; }
+      72.39% { transform: rotate(46.515deg) scaleY(1); animation-timing-function: linear; }
+      72.95% { transform: rotate(27.942deg) scaleY(1); animation-timing-function: linear; }
+      73.52% { transform: rotate(18.059deg) scaleY(1); animation-timing-function: linear; }
+      74.09% { transform: rotate(16.661deg) scaleY(1); animation-timing-function: linear; }
+      74.66% { transform: rotate(24.599deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-armR-1 {
+      0.00% { transform: rotate(-32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.36% { transform: rotate(-32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      58.64% { transform: rotate(-44deg) scaleY(1); animation-timing-function: ease-in-out; }
+      61.36% { transform: rotate(-160deg) scaleY(1); animation-timing-function: ease-in-out; }
+      63.86% { transform: rotate(-32deg) scaleY(1); animation-timing-function: linear; }
+      64.43% { transform: rotate(-52.114deg) scaleY(1); animation-timing-function: linear; }
+      65.00% { transform: rotate(-59.986deg) scaleY(1); animation-timing-function: linear; }
+      65.57% { transform: rotate(-50.824deg) scaleY(1); animation-timing-function: linear; }
+      66.14% { transform: rotate(-30.975deg) scaleY(1); animation-timing-function: linear; }
+      66.70% { transform: rotate(-19.817deg) scaleY(1); animation-timing-function: linear; }
+      67.27% { transform: rotate(-16.074deg) scaleY(1); animation-timing-function: linear; }
+      67.84% { transform: rotate(-22.024deg) scaleY(1); animation-timing-function: linear; }
+      68.41% { transform: rotate(-35.581deg) scaleY(1); animation-timing-function: linear; }
+      68.98% { transform: rotate(-54.44deg) scaleY(1); animation-timing-function: linear; }
+      69.55% { transform: rotate(-59.641deg) scaleY(1); animation-timing-function: linear; }
+      70.11% { transform: rotate(-48.019deg) scaleY(1); animation-timing-function: linear; }
+      70.68% { transform: rotate(-28.941deg) scaleY(1); animation-timing-function: linear; }
+      71.25% { transform: rotate(-18.591deg) scaleY(1); animation-timing-function: linear; }
+      71.82% { transform: rotate(-16.401deg) scaleY(1); animation-timing-function: linear; }
+      72.39% { transform: rotate(-23.706deg) scaleY(1); animation-timing-function: linear; }
+      72.95% { transform: rotate(-39.102deg) scaleY(1); animation-timing-function: linear; }
+      73.52% { transform: rotate(-56.397deg) scaleY(1); animation-timing-function: linear; }
+      74.09% { transform: rotate(-58.843deg) scaleY(1); animation-timing-function: linear; }
+      74.66% { transform: rotate(-44.951deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(-32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(-32deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    .bi-p1 { animation-name: bi-walk-1; }
+    .bi-p1 .bi-leg.l { animation-name: bi-legL-1; } .bi-p1 .bi-leg.r { animation-name: bi-legR-1; }
+    .bi-p1 .bi-arm.l { animation-name: bi-armL-1; } .bi-p1 .bi-arm.r { animation-name: bi-armR-1; }
+    @keyframes bi-walk-2 {
+      0.00% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      55.45% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      57.73% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1.07, .9); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+      60.45% { transform: translate(calc(var(--x) * 1), -30px) rotate(3deg) scale(.96, 1.06); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+      62.95% { transform: translate(calc(var(--x) * 1), 0) rotate(-4deg) scale(1.06, .93); animation-timing-function: linear; }
+      63.52% { transform: translate(calc(var(--x) * 0.978), -6.145px) rotate(-2.83deg) scale(1, 1); animation-timing-function: linear; }
+      64.09% { transform: translate(calc(var(--x) * 0.955), -10.194px) rotate(-5.66deg) scale(1, 1); animation-timing-function: linear; }
+      64.66% { transform: translate(calc(var(--x) * 0.926), -10.764px) rotate(-8.491deg) scale(1, 1); animation-timing-function: linear; }
+      65.23% { transform: translate(calc(var(--x) * 0.892), -7.662px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      65.80% { transform: translate(calc(var(--x) * 0.851), -1.946px) rotate(-9deg) scale(1.016, 0.981); animation-timing-function: linear; }
+      66.36% { transform: translate(calc(var(--x) * 0.803), -4.434px) rotate(-9deg) scale(1.002, 0.997); animation-timing-function: linear; }
+      66.93% { transform: translate(calc(var(--x) * 0.746), -9.302px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      67.50% { transform: translate(calc(var(--x) * 0.684), -10.995px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      68.07% { transform: translate(calc(var(--x) * 0.615), -8.937px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      68.64% { transform: translate(calc(var(--x) * 0.544), -3.83px) rotate(-9deg) scale(1.004, 0.995); animation-timing-function: linear; }
+      69.20% { transform: translate(calc(var(--x) * 0.471), -2.584px) rotate(-9deg) scale(1.01, 0.988); animation-timing-function: linear; }
+      69.77% { transform: translate(calc(var(--x) * 0.399), -8.116px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      70.34% { transform: translate(calc(var(--x) * 0.33), -10.879px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      70.91% { transform: translate(calc(var(--x) * 0.266), -9.931px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      71.48% { transform: translate(calc(var(--x) * 0.208), -5.594px) rotate(-9deg) scale(1.001, 0.999); animation-timing-function: linear; }
+      72.05% { transform: translate(calc(var(--x) * 0.158), -0.652px) rotate(-9deg) scale(1.035, 0.958); animation-timing-function: linear; }
+      72.61% { transform: translate(calc(var(--x) * 0.115), -6.675px) rotate(-8.105deg) scale(1, 1); animation-timing-function: linear; }
+      73.18% { transform: translate(calc(var(--x) * 0.08), -10.421px) rotate(-6.175deg) scale(1, 1); animation-timing-function: linear; }
+      73.75% { transform: translate(calc(var(--x) * 0.051), -10.611px) rotate(-4.245deg) scale(1, 1); animation-timing-function: linear; }
+      74.32% { transform: translate(calc(var(--x) * 0.026), -7.181px) rotate(-2.316deg) scale(1, 1); animation-timing-function: linear; }
+      74.89% { transform: translate(calc(var(--x) * 0.004), -1.301px) rotate(-0.386deg) scale(1.023, 0.972); animation-timing-function: linear; }
+      75.00% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1.04, .95); animation-timing-function: linear; }
+      75.73% { transform: translate(calc(var(--x) * 0 + -2.057px), 0) rotate(2.057deg) scale(1.04, .95); animation-timing-function: linear; }
+      76.45% { transform: translate(calc(var(--x) * 0 + -3.329px), 0) rotate(3.329deg) scale(1, 1); animation-timing-function: linear; }
+      77.18% { transform: translate(calc(var(--x) * 0 + -3.329px), 0) rotate(3.329deg) scale(1, 1); animation-timing-function: linear; }
+      77.91% { transform: translate(calc(var(--x) * 0 + -2.057px), 0) rotate(2.057deg) scale(1, 1); animation-timing-function: linear; }
+      78.64% { transform: translate(calc(var(--x) * 0 + 0px), 0) rotate(0deg) scale(1, 1); animation-timing-function: linear; }
+      79.55% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      85.23% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      87.50% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1.04, .96); animation-timing-function: ease-in-out; }
+      89.77% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      100.00% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-legL-2 {
+      0.00% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      55.45% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      57.73% { transform: rotate(12deg) scaleY(.92); animation-timing-function: ease-in-out; }
+      60.45% { transform: rotate(2deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.95% { transform: rotate(10deg) scaleY(.94); animation-timing-function: linear; }
+      63.52% { transform: rotate(10.586deg) scaleY(0.749); animation-timing-function: linear; }
+      64.09% { transform: rotate(14.267deg) scaleY(0.583); animation-timing-function: linear; }
+      64.66% { transform: rotate(14.786deg) scaleY(0.56); animation-timing-function: linear; }
+      65.23% { transform: rotate(11.966deg) scaleY(0.687); animation-timing-function: linear; }
+      65.80% { transform: rotate(6.769deg) scaleY(0.92); animation-timing-function: linear; }
+      66.36% { transform: rotate(3.388deg) scaleY(1); animation-timing-function: linear; }
+      66.93% { transform: rotate(1.618deg) scaleY(1); animation-timing-function: linear; }
+      67.50% { transform: rotate(1.002deg) scaleY(1); animation-timing-function: linear; }
+      68.07% { transform: rotate(1.75deg) scaleY(1); animation-timing-function: linear; }
+      68.64% { transform: rotate(3.607deg) scaleY(1); animation-timing-function: linear; }
+      69.20% { transform: rotate(7.349deg) scaleY(0.894); animation-timing-function: linear; }
+      69.77% { transform: rotate(12.378deg) scaleY(0.668); animation-timing-function: linear; }
+      70.34% { transform: rotate(14.89deg) scaleY(0.555); animation-timing-function: linear; }
+      70.91% { transform: rotate(14.028deg) scaleY(0.594); animation-timing-function: linear; }
+      71.48% { transform: rotate(10.085deg) scaleY(0.771); animation-timing-function: linear; }
+      72.05% { transform: rotate(4.763deg) scaleY(1); animation-timing-function: linear; }
+      72.61% { transform: rotate(2.573deg) scaleY(1); animation-timing-function: linear; }
+      73.18% { transform: rotate(1.211deg) scaleY(1); animation-timing-function: linear; }
+      73.75% { transform: rotate(1.141deg) scaleY(1); animation-timing-function: linear; }
+      74.32% { transform: rotate(2.389deg) scaleY(1); animation-timing-function: linear; }
+      74.89% { transform: rotate(4.527deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-legR-2 {
+      0.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      7.95% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      9.55% { transform: rotate(-42deg) scaleY(1); animation-timing-function: ease-in-out; }
+      12.05% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      20.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      21.59% { transform: rotate(-42deg) scaleY(1); animation-timing-function: ease-in-out; }
+      24.09% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      32.05% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      33.64% { transform: rotate(-42deg) scaleY(1); animation-timing-function: ease-in-out; }
+      35.91% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      44.09% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      45.45% { transform: rotate(-42deg) scaleY(1); animation-timing-function: ease-in-out; }
+      47.95% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      49.09% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      50.45% { transform: rotate(-62deg) scaleY(1); animation-timing-function: ease-in-out; }
+      52.95% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      55.45% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      57.73% { transform: rotate(-12deg) scaleY(.92); animation-timing-function: ease-in-out; }
+      60.45% { transform: rotate(-2deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.95% { transform: rotate(-10deg) scaleY(.94); animation-timing-function: linear; }
+      63.52% { transform: rotate(-2.765deg) scaleY(1); animation-timing-function: linear; }
+      64.09% { transform: rotate(-1.293deg) scaleY(1); animation-timing-function: linear; }
+      64.66% { transform: rotate(-1.086deg) scaleY(1); animation-timing-function: linear; }
+      65.23% { transform: rotate(-2.214deg) scaleY(1); animation-timing-function: linear; }
+      65.80% { transform: rotate(-4.292deg) scaleY(1); animation-timing-function: linear; }
+      66.36% { transform: rotate(-9.031deg) scaleY(0.819); animation-timing-function: linear; }
+      66.93% { transform: rotate(-13.456deg) scaleY(0.619); animation-timing-function: linear; }
+      67.50% { transform: rotate(-14.996deg) scaleY(0.55); animation-timing-function: linear; }
+      68.07% { transform: rotate(-13.125deg) scaleY(0.634); animation-timing-function: linear; }
+      68.64% { transform: rotate(-8.482deg) scaleY(0.843); animation-timing-function: linear; }
+      69.20% { transform: rotate(-4.06deg) scaleY(1); animation-timing-function: linear; }
+      69.77% { transform: rotate(-2.049deg) scaleY(1); animation-timing-function: linear; }
+      70.34% { transform: rotate(-1.044deg) scaleY(1); animation-timing-function: linear; }
+      70.91% { transform: rotate(-1.389deg) scaleY(1); animation-timing-function: linear; }
+      71.48% { transform: rotate(-2.966deg) scaleY(1); animation-timing-function: linear; }
+      72.05% { transform: rotate(-5.592deg) scaleY(0.973); animation-timing-function: linear; }
+      72.61% { transform: rotate(-11.068deg) scaleY(0.727); animation-timing-function: linear; }
+      73.18% { transform: rotate(-14.473deg) scaleY(0.574); animation-timing-function: linear; }
+      73.75% { transform: rotate(-14.646deg) scaleY(0.566); animation-timing-function: linear; }
+      74.32% { transform: rotate(-11.528deg) scaleY(0.706); animation-timing-function: linear; }
+      74.89% { transform: rotate(-6.183deg) scaleY(0.947); animation-timing-function: linear; }
+      75.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-armL-2 {
+      0.00% { transform: rotate(36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      55.45% { transform: rotate(36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      57.73% { transform: rotate(48deg) scaleY(1); animation-timing-function: ease-in-out; }
+      60.45% { transform: rotate(160deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.95% { transform: rotate(36deg) scaleY(1); animation-timing-function: linear; }
+      63.52% { transform: rotate(27.062deg) scaleY(1); animation-timing-function: linear; }
+      64.09% { transform: rotate(21.173deg) scaleY(1); animation-timing-function: linear; }
+      64.66% { transform: rotate(20.343deg) scaleY(1); animation-timing-function: linear; }
+      65.23% { transform: rotate(24.855deg) scaleY(1); animation-timing-function: linear; }
+      65.80% { transform: rotate(33.17deg) scaleY(1); animation-timing-function: linear; }
+      66.36% { transform: rotate(47.287deg) scaleY(1); animation-timing-function: linear; }
+      66.93% { transform: rotate(59.677deg) scaleY(1); animation-timing-function: linear; }
+      67.50% { transform: rotate(63.988deg) scaleY(1); animation-timing-function: linear; }
+      68.07% { transform: rotate(58.75deg) scaleY(1); animation-timing-function: linear; }
+      68.64% { transform: rotate(45.75deg) scaleY(1); animation-timing-function: linear; }
+      69.20% { transform: rotate(32.242deg) scaleY(1); animation-timing-function: linear; }
+      69.77% { transform: rotate(24.195deg) scaleY(1); animation-timing-function: linear; }
+      70.34% { transform: rotate(20.175deg) scaleY(1); animation-timing-function: linear; }
+      70.91% { transform: rotate(21.555deg) scaleY(1); animation-timing-function: linear; }
+      71.48% { transform: rotate(27.864deg) scaleY(1); animation-timing-function: linear; }
+      72.05% { transform: rotate(37.659deg) scaleY(1); animation-timing-function: linear; }
+      72.61% { transform: rotate(52.99deg) scaleY(1); animation-timing-function: linear; }
+      73.18% { transform: rotate(62.525deg) scaleY(1); animation-timing-function: linear; }
+      73.75% { transform: rotate(63.01deg) scaleY(1); animation-timing-function: linear; }
+      74.32% { transform: rotate(54.279deg) scaleY(1); animation-timing-function: linear; }
+      74.89% { transform: rotate(39.312deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-armR-2 {
+      0.00% { transform: rotate(-36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      55.45% { transform: rotate(-36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      57.73% { transform: rotate(-48deg) scaleY(1); animation-timing-function: ease-in-out; }
+      60.45% { transform: rotate(-160deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.95% { transform: rotate(-36deg) scaleY(1); animation-timing-function: linear; }
+      63.52% { transform: rotate(-51.642deg) scaleY(1); animation-timing-function: linear; }
+      64.09% { transform: rotate(-61.947deg) scaleY(1); animation-timing-function: linear; }
+      64.66% { transform: rotate(-63.4deg) scaleY(1); animation-timing-function: linear; }
+      65.23% { transform: rotate(-55.503deg) scaleY(1); animation-timing-function: linear; }
+      65.80% { transform: rotate(-40.953deg) scaleY(1); animation-timing-function: linear; }
+      66.36% { transform: rotate(-29.55deg) scaleY(1); animation-timing-function: linear; }
+      66.93% { transform: rotate(-22.47deg) scaleY(1); animation-timing-function: linear; }
+      67.50% { transform: rotate(-20.007deg) scaleY(1); animation-timing-function: linear; }
+      68.07% { transform: rotate(-23deg) scaleY(1); animation-timing-function: linear; }
+      68.64% { transform: rotate(-30.429deg) scaleY(1); animation-timing-function: linear; }
+      69.20% { transform: rotate(-42.577deg) scaleY(1); animation-timing-function: linear; }
+      69.77% { transform: rotate(-56.659deg) scaleY(1); animation-timing-function: linear; }
+      70.34% { transform: rotate(-63.693deg) scaleY(1); animation-timing-function: linear; }
+      70.91% { transform: rotate(-61.278deg) scaleY(1); animation-timing-function: linear; }
+      71.48% { transform: rotate(-50.239deg) scaleY(1); animation-timing-function: linear; }
+      72.05% { transform: rotate(-35.052deg) scaleY(1); animation-timing-function: linear; }
+      72.61% { transform: rotate(-26.291deg) scaleY(1); animation-timing-function: linear; }
+      73.18% { transform: rotate(-20.843deg) scaleY(1); animation-timing-function: linear; }
+      73.75% { transform: rotate(-20.566deg) scaleY(1); animation-timing-function: linear; }
+      74.32% { transform: rotate(-25.555deg) scaleY(1); animation-timing-function: linear; }
+      74.89% { transform: rotate(-34.108deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(-36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(-36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    .bi-p2 { animation-name: bi-walk-2; }
+    .bi-p2 .bi-leg.l { animation-name: bi-legL-2; } .bi-p2 .bi-leg.r { animation-name: bi-legR-2; }
+    .bi-p2 .bi-arm.l { animation-name: bi-armL-2; } .bi-p2 .bi-arm.r { animation-name: bi-armR-2; }
+    @keyframes bi-walk-3 {
+      0.00% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      54.55% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      56.82% { transform: translate(calc(var(--x) * 1), 0) rotate(0deg) scale(1.07, .9); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+      59.55% { transform: translate(calc(var(--x) * 1), -30px) rotate(3deg) scale(.96, 1.06); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+      62.05% { transform: translate(calc(var(--x) * 1), 0) rotate(-4deg) scale(1.06, .93); animation-timing-function: linear; }
+      62.61% { transform: translate(calc(var(--x) * 0.98), -6.284px) rotate(-2.632deg) scale(1.001, 0.999); animation-timing-function: linear; }
+      63.18% { transform: translate(calc(var(--x) * 0.958), -10.707px) rotate(-5.263deg) scale(1, 1); animation-timing-function: linear; }
+      63.75% { transform: translate(calc(var(--x) * 0.933), -11.959px) rotate(-7.895deg) scale(1, 1); animation-timing-function: linear; }
+      64.32% { transform: translate(calc(var(--x) * 0.903), -9.669px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      64.89% { transform: translate(calc(var(--x) * 0.867), -4.516px) rotate(-9deg) scale(1.003, 0.996); animation-timing-function: linear; }
+      65.45% { transform: translate(calc(var(--x) * 0.824), -1.975px) rotate(-9deg) scale(1.017, 0.98); animation-timing-function: linear; }
+      66.02% { transform: translate(calc(var(--x) * 0.775), -7.881px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      66.59% { transform: translate(calc(var(--x) * 0.72), -11.453px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      67.16% { transform: translate(calc(var(--x) * 0.659), -11.633px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      67.73% { transform: translate(calc(var(--x) * 0.594), -8.368px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      68.30% { transform: translate(calc(var(--x) * 0.527), -2.624px) rotate(-9deg) scale(1.011, 0.986); animation-timing-function: linear; }
+      68.86% { transform: translate(calc(var(--x) * 0.459), -3.896px) rotate(-9deg) scale(1.005, 0.994); animation-timing-function: linear; }
+      69.43% { transform: translate(calc(var(--x) * 0.392), -9.263px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      70.00% { transform: translate(calc(var(--x) * 0.328), -11.886px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      70.57% { transform: translate(calc(var(--x) * 0.269), -10.989px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      71.14% { transform: translate(calc(var(--x) * 0.215), -6.838px) rotate(-9deg) scale(1, 1); animation-timing-function: linear; }
+      71.70% { transform: translate(calc(var(--x) * 0.167), -0.661px) rotate(-9deg) scale(1.036, 0.957); animation-timing-function: linear; }
+      72.27% { transform: translate(calc(var(--x) * 0.126), -5.711px) rotate(-8.612deg) scale(1.001, 0.999); animation-timing-function: linear; }
+      72.84% { transform: translate(calc(var(--x) * 0.091), -10.392px) rotate(-6.818deg) scale(1, 1); animation-timing-function: linear; }
+      73.41% { transform: translate(calc(var(--x) * 0.062), -11.995px) rotate(-5.024deg) scale(1, 1); animation-timing-function: linear; }
+      73.98% { transform: translate(calc(var(--x) * 0.037), -10.046px) rotate(-3.23deg) scale(1, 1); animation-timing-function: linear; }
+      74.55% { transform: translate(calc(var(--x) * 0.016), -5.121px) rotate(-1.435deg) scale(1.002, 0.998); animation-timing-function: linear; }
+      75.00% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1.04, .95); animation-timing-function: linear; }
+      75.73% { transform: translate(calc(var(--x) * 0 + -2.057px), 0) rotate(2.057deg) scale(1.04, .95); animation-timing-function: linear; }
+      76.45% { transform: translate(calc(var(--x) * 0 + -3.329px), 0) rotate(3.329deg) scale(1, 1); animation-timing-function: linear; }
+      77.18% { transform: translate(calc(var(--x) * 0 + -3.329px), 0) rotate(3.329deg) scale(1, 1); animation-timing-function: linear; }
+      77.91% { transform: translate(calc(var(--x) * 0 + -2.057px), 0) rotate(2.057deg) scale(1, 1); animation-timing-function: linear; }
+      78.64% { transform: translate(calc(var(--x) * 0 + 0px), 0) rotate(0deg) scale(1, 1); animation-timing-function: linear; }
+      79.55% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      85.23% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      87.50% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1.04, .96); animation-timing-function: ease-in-out; }
+      89.77% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+      100.00% { transform: translate(calc(var(--x) * 0), 0) rotate(0deg) scale(1, 1); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-legL-3 {
+      0.00% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      54.55% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.82% { transform: rotate(12deg) scaleY(.92); animation-timing-function: ease-in-out; }
+      59.55% { transform: rotate(2deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.05% { transform: rotate(10deg) scaleY(.94); animation-timing-function: linear; }
+      62.61% { transform: rotate(10.237deg) scaleY(0.764); animation-timing-function: linear; }
+      63.18% { transform: rotate(13.923deg) scaleY(0.598); animation-timing-function: linear; }
+      63.75% { transform: rotate(14.966deg) scaleY(0.552); animation-timing-function: linear; }
+      64.32% { transform: rotate(13.058deg) scaleY(0.637); animation-timing-function: linear; }
+      64.89% { transform: rotate(8.763deg) scaleY(0.831); animation-timing-function: linear; }
+      65.45% { transform: rotate(4.342deg) scaleY(1); animation-timing-function: linear; }
+      66.02% { transform: rotate(2.373deg) scaleY(1); animation-timing-function: linear; }
+      66.59% { transform: rotate(1.182deg) scaleY(1); animation-timing-function: linear; }
+      67.16% { transform: rotate(1.122deg) scaleY(1); animation-timing-function: linear; }
+      67.73% { transform: rotate(2.211deg) scaleY(1); animation-timing-function: linear; }
+      68.30% { transform: rotate(4.125deg) scaleY(1); animation-timing-function: linear; }
+      68.86% { transform: rotate(8.247deg) scaleY(0.854); animation-timing-function: linear; }
+      69.43% { transform: rotate(12.719deg) scaleY(0.653); animation-timing-function: linear; }
+      70.00% { transform: rotate(14.905deg) scaleY(0.554); animation-timing-function: linear; }
+      70.57% { transform: rotate(14.158deg) scaleY(0.588); animation-timing-function: linear; }
+      71.14% { transform: rotate(10.698deg) scaleY(0.744); animation-timing-function: linear; }
+      71.70% { transform: rotate(5.551deg) scaleY(0.975); animation-timing-function: linear; }
+      72.27% { transform: rotate(3.096deg) scaleY(1); animation-timing-function: linear; }
+      72.84% { transform: rotate(1.536deg) scaleY(1); animation-timing-function: linear; }
+      73.41% { transform: rotate(1.002deg) scaleY(1); animation-timing-function: linear; }
+      73.98% { transform: rotate(1.651deg) scaleY(1); animation-timing-function: linear; }
+      74.55% { transform: rotate(3.293deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-legR-3 {
+      0.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      54.55% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.82% { transform: rotate(-12deg) scaleY(.92); animation-timing-function: ease-in-out; }
+      59.55% { transform: rotate(-2deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.05% { transform: rotate(-10deg) scaleY(.94); animation-timing-function: linear; }
+      62.61% { transform: rotate(-2.905deg) scaleY(1); animation-timing-function: linear; }
+      63.18% { transform: rotate(-1.431deg) scaleY(1); animation-timing-function: linear; }
+      63.75% { transform: rotate(-1.014deg) scaleY(1); animation-timing-function: linear; }
+      64.32% { transform: rotate(-1.777deg) scaleY(1); animation-timing-function: linear; }
+      64.89% { transform: rotate(-3.495deg) scaleY(1); animation-timing-function: linear; }
+      65.45% { transform: rotate(-6.646deg) scaleY(0.926); animation-timing-function: linear; }
+      66.02% { transform: rotate(-11.568deg) scaleY(0.704); animation-timing-function: linear; }
+      66.59% { transform: rotate(-14.544deg) scaleY(0.571); animation-timing-function: linear; }
+      67.16% { transform: rotate(-14.694deg) scaleY(0.564); animation-timing-function: linear; }
+      67.73% { transform: rotate(-11.973deg) scaleY(0.686); animation-timing-function: linear; }
+      68.30% { transform: rotate(-7.187deg) scaleY(0.902); animation-timing-function: linear; }
+      68.86% { transform: rotate(-3.701deg) scaleY(1); animation-timing-function: linear; }
+      69.43% { transform: rotate(-1.912deg) scaleY(1); animation-timing-function: linear; }
+      70.00% { transform: rotate(-1.038deg) scaleY(1); animation-timing-function: linear; }
+      70.57% { transform: rotate(-1.337deg) scaleY(1); animation-timing-function: linear; }
+      71.14% { transform: rotate(-2.721deg) scaleY(1); animation-timing-function: linear; }
+      71.70% { transform: rotate(-4.78deg) scaleY(1); animation-timing-function: linear; }
+      72.27% { transform: rotate(-9.759deg) scaleY(0.786); animation-timing-function: linear; }
+      72.84% { transform: rotate(-13.66deg) scaleY(0.61); animation-timing-function: linear; }
+      73.41% { transform: rotate(-14.996deg) scaleY(0.55); animation-timing-function: linear; }
+      73.98% { transform: rotate(-13.372deg) scaleY(0.623); animation-timing-function: linear; }
+      74.55% { transform: rotate(-9.268deg) scaleY(0.808); animation-timing-function: linear; }
+      75.00% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(-5deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-armL-3 {
+      0.00% { transform: rotate(24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      54.55% { transform: rotate(24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.82% { transform: rotate(36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      59.55% { transform: rotate(160deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.05% { transform: rotate(24deg) scaleY(1); animation-timing-function: linear; }
+      62.61% { transform: rotate(15.621deg) scaleY(1); animation-timing-function: linear; }
+      63.18% { transform: rotate(9.724deg) scaleY(1); animation-timing-function: linear; }
+      63.75% { transform: rotate(8.055deg) scaleY(1); animation-timing-function: linear; }
+      64.32% { transform: rotate(11.108deg) scaleY(1); animation-timing-function: linear; }
+      64.89% { transform: rotate(17.979deg) scaleY(1); animation-timing-function: linear; }
+      65.45% { transform: rotate(28.609deg) scaleY(1); animation-timing-function: linear; }
+      66.02% { transform: rotate(42.389deg) scaleY(1); animation-timing-function: linear; }
+      66.59% { transform: rotate(50.723deg) scaleY(1); animation-timing-function: linear; }
+      67.16% { transform: rotate(51.143deg) scaleY(1); animation-timing-function: linear; }
+      67.73% { transform: rotate(43.524deg) scaleY(1); animation-timing-function: linear; }
+      68.30% { transform: rotate(30.123deg) scaleY(1); animation-timing-function: linear; }
+      68.86% { transform: rotate(18.805deg) scaleY(1); animation-timing-function: linear; }
+      69.43% { transform: rotate(11.649deg) scaleY(1); animation-timing-function: linear; }
+      70.00% { transform: rotate(8.152deg) scaleY(1); animation-timing-function: linear; }
+      70.57% { transform: rotate(9.348deg) scaleY(1); animation-timing-function: linear; }
+      71.14% { transform: rotate(14.883deg) scaleY(1); animation-timing-function: linear; }
+      71.70% { transform: rotate(23.119deg) scaleY(1); animation-timing-function: linear; }
+      72.27% { transform: rotate(37.327deg) scaleY(1); animation-timing-function: linear; }
+      72.84% { transform: rotate(48.249deg) scaleY(1); animation-timing-function: linear; }
+      73.41% { transform: rotate(51.989deg) scaleY(1); animation-timing-function: linear; }
+      73.98% { transform: rotate(47.441deg) scaleY(1); animation-timing-function: linear; }
+      74.55% { transform: rotate(35.95deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    @keyframes bi-armR-3 {
+      0.00% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      7.95% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      14.09% { transform: rotate(-165deg) scaleY(1); animation-timing-function: ease-in-out; }
+      22.05% { transform: rotate(-165deg) scaleY(1); animation-timing-function: ease-in-out; }
+      27.95% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      34.09% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      40.00% { transform: rotate(-165deg) scaleY(1); animation-timing-function: ease-in-out; }
+      44.09% { transform: rotate(-165deg) scaleY(1); animation-timing-function: ease-in-out; }
+      50.00% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      54.55% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      56.82% { transform: rotate(-36deg) scaleY(1); animation-timing-function: ease-in-out; }
+      59.55% { transform: rotate(-160deg) scaleY(1); animation-timing-function: ease-in-out; }
+      62.05% { transform: rotate(-24deg) scaleY(1); animation-timing-function: linear; }
+      62.61% { transform: rotate(-38.663deg) scaleY(1); animation-timing-function: linear; }
+      63.18% { transform: rotate(-48.983deg) scaleY(1); animation-timing-function: linear; }
+      63.75% { transform: rotate(-51.904deg) scaleY(1); animation-timing-function: linear; }
+      64.32% { transform: rotate(-46.561deg) scaleY(1); animation-timing-function: linear; }
+      64.89% { transform: rotate(-34.537deg) scaleY(1); animation-timing-function: linear; }
+      65.45% { transform: rotate(-21.366deg) scaleY(1); animation-timing-function: linear; }
+      66.02% { transform: rotate(-13.492deg) scaleY(1); animation-timing-function: linear; }
+      66.59% { transform: rotate(-8.73deg) scaleY(1); animation-timing-function: linear; }
+      67.16% { transform: rotate(-8.49deg) scaleY(1); animation-timing-function: linear; }
+      67.73% { transform: rotate(-12.843deg) scaleY(1); animation-timing-function: linear; }
+      68.30% { transform: rotate(-20.501deg) scaleY(1); animation-timing-function: linear; }
+      68.86% { transform: rotate(-33.092deg) scaleY(1); animation-timing-function: linear; }
+      69.43% { transform: rotate(-45.614deg) scaleY(1); animation-timing-function: linear; }
+      70.00% { transform: rotate(-51.735deg) scaleY(1); animation-timing-function: linear; }
+      70.57% { transform: rotate(-49.642deg) scaleY(1); animation-timing-function: linear; }
+      71.14% { transform: rotate(-39.955deg) scaleY(1); animation-timing-function: linear; }
+      71.70% { transform: rotate(-25.542deg) scaleY(1); animation-timing-function: linear; }
+      72.27% { transform: rotate(-16.385deg) scaleY(1); animation-timing-function: linear; }
+      72.84% { transform: rotate(-10.144deg) scaleY(1); animation-timing-function: linear; }
+      73.41% { transform: rotate(-8.006deg) scaleY(1); animation-timing-function: linear; }
+      73.98% { transform: rotate(-10.605deg) scaleY(1); animation-timing-function: linear; }
+      74.55% { transform: rotate(-17.172deg) scaleY(1); animation-timing-function: linear; }
+      75.00% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      79.55% { transform: rotate(-24deg) scaleY(1); animation-timing-function: ease-in-out; }
+      85.23% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+      100.00% { transform: rotate(0deg) scaleY(.15); animation-timing-function: ease-in-out; }
+    }
+    .bi-p3 { animation-name: bi-walk-3; }
+    .bi-p3 .bi-leg.l { animation-name: bi-legL-3; } .bi-p3 .bi-leg.r { animation-name: bi-legR-3; }
+    .bi-p3 .bi-arm.l { animation-name: bi-armL-3; } .bi-p3 .bi-arm.r { animation-name: bi-armR-3; }
+    @media (prefers-reduced-motion: reduce) { #bi { display: none; } }
+  </style>
+
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&family=Noto+Serif+Arabic:wght@300;400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Schema.org Structured Data (JSON-LD) -->
   <!-- 1. Organization Schema -->
@@ -220,57 +886,127 @@
   </script>
 </head>
 
-<body class="bg-[var(--bg)] text-[var(--ink)] antialiased selection:bg-[var(--brand)]/20 selection:text-[var(--ink)] dark:bg-[#101828] dark:text-[#F7F9FC]">
+<body>
+  <!-- Brand intro (see #bi-css in <head>) -->
+  <div id="bi" data-lang="ar" aria-hidden="true">
+    <div class="bi-bg" aria-hidden="true">
+      <svg class="bi-ic" viewBox="0 0 24 24" style="--l:9%;--t:17%;--s:34px;--d:-.4s;--dx:8px;--dy:-14px"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:23%;--t:9%;--s:28px;--d:-1.6s;--dx:-6px;--dy:12px"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:6%;--t:50%;--s:32px;--d:-.9s;--dx:6px;--dy:-16px"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/></svg>
+      <svg class="bi-ic" viewBox="0 0 24 24" style="--l:15%;--t:78%;--s:34px;--d:-2.2s;--dx:-8px;--dy:-12px"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:31%;--t:87%;--s:26px;--d:-1.2s;--dx:6px;--dy:-10px"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+      <svg class="bi-ic" viewBox="0 0 24 24" style="--l:76%;--t:9%;--s:32px;--d:-.6s;--dx:-8px;--dy:14px"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>
+      <svg class="bi-ic" viewBox="0 0 24 24" style="--l:89%;--t:19%;--s:30px;--d:-1.9s;--dx:6px;--dy:-14px"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:91%;--t:50%;--s:34px;--d:-1.1s;--dx:-6px;--dy:12px"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:83%;--t:80%;--s:28px;--d:-2.6s;--dx:8px;--dy:-12px"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+      <svg class="bi-ic" viewBox="0 0 24 24" style="--l:67%;--t:88%;--s:32px;--d:-.3s;--dx:-6px;--dy:-14px"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:50%;--t:7%;--s:26px;--d:-1.4s;--dx:6px;--dy:10px"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      <svg class="bi-ic bi-hide-sm" viewBox="0 0 24 24" style="--l:49%;--t:91%;--s:30px;--d:-2s;--dx:-8px;--dy:-8px"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      <i class="bi-dot" style="--l:18%;--t:36%;--d:0s"></i>
+      <i class="bi-dot bi-hide-sm" style="--l:27%;--t:62%;--d:-.5s"></i>
+      <i class="bi-dot" style="--l:72%;--t:30%;--d:-.9s"></i>
+      <i class="bi-dot bi-hide-sm" style="--l:81%;--t:64%;--d:-1.3s"></i>
+      <i class="bi-dot bi-hide-sm" style="--l:38%;--t:20%;--d:-1.1s"></i>
+      <i class="bi-dot" style="--l:62%;--t:76%;--d:-.2s"></i>
+    </div>
+    <div class="bi-wrap" dir="ltr">
+      <div class="bi-floor"></div>
+      <img class="bi-word bi-word-ar" src="/brand/shaghal-word-ar.svg" alt="" draggable="false" />
+      <img class="bi-word bi-word-en" src="/brand/shaghal-word-en.svg" alt="" draggable="false" />
+      <div class="bi-stage">
+        <div class="bi-p bi-p1">
+          <div class="bi-leg l"></div><div class="bi-leg r"></div>
+          <div class="bi-arm l"></div><div class="bi-arm r"></div>
+          <div class="bi-head"></div><div class="bi-body"></div>
+          <div class="bi-laptop"><div class="bi-lid"><div class="bi-screen"><i class="bi-line"></i><i class="bi-line"></i><i class="bi-line"></i></div></div><div class="bi-base"></div></div>
+        </div>
+        <div class="bi-p bi-p2">
+          <div class="bi-leg l"></div><div class="bi-leg r"></div>
+          <div class="bi-arm l"></div><div class="bi-arm r"></div>
+          <div class="bi-head"></div><div class="bi-body"></div>
+          <div class="bi-ball"></div>
+        </div>
+        <div class="bi-p bi-p3">
+          <div class="bi-leg l"></div><div class="bi-leg r"></div>
+          <div class="bi-arm l"></div><div class="bi-arm r"><div class="bi-mug"><i class="bi-steam"></i><i class="bi-steam"></i></div></div>
+          <div class="bi-head"></div><div class="bi-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var el = document.getElementById('bi');
+      if (!el) return;
+      var lang = 'ar';
+      try {
+        var q = new URLSearchParams(location.search).get('lang');
+        lang = q === 'en' || q === 'ar' ? q : (localStorage.getItem('Aura_lang') || 'ar');
+      } catch (e) {}
+      el.setAttribute('data-lang', lang === 'en' ? 'en' : 'ar');
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); return; }
+      var root = document.documentElement, done = false;
+      root.style.overflow = 'hidden';
+      function end() {
+        if (done) return; done = true;
+        el.classList.add('bi-out');
+        root.style.overflow = '';
+        setTimeout(function () { el.remove(); var css = document.getElementById('bi-css'); if (css) css.remove(); }, 420);
+      }
+      setTimeout(end, 3100); // 2.6s scene + 0.5s hold on the finished logo (+0.4s fade = 3.5s)
+      el.addEventListener('click', end);
+    })();
+  </script>
   
   <div id="root">
     <!-- Pre-rendered Semantic HTML for Search Engines & SEO Crawlers (Seobility, Googlebot, Bing) -->
-    <header style="background: #101828; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 16px 24px;">
+    <header style="background: #FFFFFF; border-bottom: 1px solid rgba(37,125,182,0.08); padding: 16px 24px;">
       <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-        <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #ffffff;">
-          <img src="/logo.svg" alt="شغال - Shaghal Logo" width="40" height="40" style="display: block;" />
+        <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #0F2A46;">
+          <img src="/brand/shaghal-mark.svg" alt="شغال - Shaghal Logo" width="40" height="40" style="display: block;" />
           <div>
             <strong style="font-size: 20px; font-weight: 800; display: block; line-height: 1.2;">شغال | Shaghal</strong>
-            <span style="font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px;">استوديو الأنظمة الرقمية المخصصة</span>
+            <span style="font-size: 11px; color: #62788F; text-transform: uppercase; letter-spacing: 1px;">استوديو الأنظمة الرقمية المخصصة</span>
           </div>
         </a>
 
         <!-- Crawlable Internal Navigation Links with True Relative Paths -->
         <nav aria-label="التنقل الرئيسي" style="display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; font-weight: 600;">
-          <a href="/" style="color: #F1F5F9; text-decoration: none;">الرئيسية</a>
-          <a href="/#services" style="color: #94A3B8; text-decoration: none;">الأنظمة والخدمات</a>
-          <a href="/#pos" style="color: #94A3B8; text-decoration: none;">نظام نقاط البيع</a>
-          <a href="/#clinic" style="color: #94A3B8; text-decoration: none;">إدارة العيادات</a>
-          <a href="/#warehouse" style="color: #94A3B8; text-decoration: none;">إدارة المخازن</a>
-          <a href="/#about" style="color: #94A3B8; text-decoration: none;">عن شغال</a>
-          <a href="/#process" style="color: #94A3B8; text-decoration: none;">منهجية العمل</a>
-          <a href="/#work" style="color: #94A3B8; text-decoration: none;">نماذج الأعمال</a>
-          <a href="/#testimonials" style="color: #94A3B8; text-decoration: none;">آراء العملاء</a>
-          <a href="/#faq" style="color: #94A3B8; text-decoration: none;">الأسئلة الشائعة</a>
-          <a href="/#contact" style="color: #21C87A; text-decoration: none; font-weight: 700;">اطلب نظامك المخصص</a>
+          <a href="/" style="color: #0F2A46; text-decoration: none;">الرئيسية</a>
+          <a href="/#services" style="color: #62788F; text-decoration: none;">الأنظمة والخدمات</a>
+          <a href="/#pos" style="color: #62788F; text-decoration: none;">نظام نقاط البيع</a>
+          <a href="/#clinic" style="color: #62788F; text-decoration: none;">إدارة العيادات</a>
+          <a href="/#warehouse" style="color: #62788F; text-decoration: none;">إدارة المخازن</a>
+          <a href="/#about" style="color: #62788F; text-decoration: none;">عن شغال</a>
+          <a href="/#process" style="color: #62788F; text-decoration: none;">منهجية العمل</a>
+          <a href="/#work" style="color: #62788F; text-decoration: none;">نماذج الأعمال</a>
+          <a href="/#testimonials" style="color: #62788F; text-decoration: none;">آراء العملاء</a>
+          <a href="/#faq" style="color: #62788F; text-decoration: none;">الأسئلة الشائعة</a>
+          <a href="/#contact" style="color: #257DB6; text-decoration: none; font-weight: 700;">اطلب نظامك المخصص</a>
         </nav>
       </div>
     </header>
 
-    <main style="max-width: 1100px; margin: 0 auto; padding: 48px 24px; color: #F7F9FC; font-family: 'Cairo', system-ui, sans-serif; line-height: 1.85;">
+    <main style="max-width: 1100px; margin: 0 auto; padding: 48px 24px; color: #0F2A46; font-family: 'Cairo', system-ui, sans-serif; line-height: 1.85;">
       <!-- Hero Section with Distinct H1 (Resolves H1 identical to title issue) -->
       <section id="hero" style="text-align: center; margin-bottom: 64px;">
-        <span style="display: inline-block; padding: 6px 16px; border-radius: 9999px; background: rgba(33, 200, 122, 0.12); color: #21C87A; font-size: 13px; font-weight: 700; margin-bottom: 20px;">
+        <span style="display: inline-block; padding: 6px 16px; border-radius: 9999px; background: rgba(37,125,182, 0.12); color: #257DB6; font-size: 13px; font-weight: 700; margin-bottom: 20px;">
           استوديو تطوير البرمجيات والأنظمة الرقمية المخصصة للشركات
         </span>
-        <h1 style="font-size: 36px; font-weight: 900; line-height: 1.35; margin-bottom: 22px; color: #FFFFFF;">
+        <h1 style="font-size: 36px; font-weight: 900; line-height: 1.35; margin-bottom: 22px; color: #0F2A46;">
           شركة برمجيات شغال (Software House) — أنظمة نقاط البيع POS وإدارة العيادات Clinics
         </h1>
-        <p style="font-size: 18px; color: #94A3B8; max-width: 860px; margin: 0 auto 20px auto;">
+        <p style="font-size: 18px; color: #62788F; max-width: 860px; margin: 0 auto 20px auto;">
           في استوديو <strong>شغال (Shaghal)</strong>، نبني الأنظمة الرقمية التي تشغّل مشروعك بكفاءة وذكاء ودقة متناهية. نحن لا نبيع قوالب برمجية مسبقة الصنع أو برامج عامة، بل نهندس حلولاً برمجية مفصلة بالكامل على مقاس دورة العمل اليومية لمنشأتك التجارية أو الطبية أو الصناعية.
         </p>
-        <p style="font-size: 16px; color: #CBD5E1; max-width: 820px; margin: 0 auto 32px auto;">
-          سواء كنت تبحث عن <a href="/#pos" style="color: #21C87A; text-decoration: underline;">نظام نقاط بيع وكاشير (POS)</a> يعمل أونلاين لسهولة الصيانة ويدعم العمل أوفلاين عند انقطاع الإنترنت مع مزامنة ذكية، أو <a href="/#clinic" style="color: #21C87A; text-decoration: underline;">نظام إدارة عيادات ومراكز طبية (Clinic EMR)</a> ينظم ملفات المرضى والروشتات، أو <a href="/#warehouse" style="color: #21C87A; text-decoration: underline;">نظام إدارة المخازن والمستودعات والعهد</a> لتتبع الأصول، فإن فريقنا البرمجي يسلّمك منظومة متكاملة تمنحك السيطرة المطلقة على أعمالك.
+        <p style="font-size: 16px; color: #3A5370; max-width: 820px; margin: 0 auto 32px auto;">
+          سواء كنت تبحث عن <a href="/#pos" style="color: #257DB6; text-decoration: underline;">نظام نقاط بيع وكاشير (POS)</a> يعمل أونلاين لسهولة الصيانة ويدعم العمل أوفلاين عند انقطاع الإنترنت مع مزامنة ذكية، أو <a href="/#clinic" style="color: #257DB6; text-decoration: underline;">نظام إدارة عيادات ومراكز طبية (Clinic EMR)</a> ينظم ملفات المرضى والروشتات، أو <a href="/#warehouse" style="color: #257DB6; text-decoration: underline;">نظام إدارة المخازن والمستودعات والعهد</a> لتتبع الأصول، فإن فريقنا البرمجي يسلّمك منظومة متكاملة تمنحك السيطرة المطلقة على أعمالك.
         </p>
         <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; padding: 0 16px;">
-          <a href="/#contact" style="background: #21C87A; color: #101828; padding: 13px 30px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 15px; flex: 1 1 auto; max-width: 280px; text-align: center;">
+          <a href="/#contact" style="background: #257DB6; color: #FFFFFF; padding: 13px 30px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 15px; flex: 1 1 auto; max-width: 280px; text-align: center;">
             ابدأ مشروعك البرمجي الآن
           </a>
-          <a href="/#services" style="border: 1px solid rgba(255,255,255,0.2); color: #FFFFFF; padding: 13px 30px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; flex: 1 1 auto; max-width: 280px; text-align: center;">
+          <a href="/#services" style="border: 1px solid rgba(37,125,182,0.3); color: #0F2A46; padding: 13px 30px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; flex: 1 1 auto; max-width: 280px; text-align: center;">
             استكشف الأنظمة المتاحة
           </a>
         </div>
@@ -279,123 +1015,123 @@
       <!-- Services Section with H2 and H3 -->
       <section id="services" style="margin-bottom: 72px;">
         <div style="text-align: center; margin-bottom: 40px;">
-          <h2 style="font-size: 30px; font-weight: 800; margin-bottom: 12px; color: #FFFFFF;">
+          <h2 style="font-size: 30px; font-weight: 800; margin-bottom: 12px; color: #0F2A46;">
             أنظمتنا الرقمية المتخصصة للشركات والمنشآت
           </h2>
-          <p style="color: #94A3B8; max-width: 740px; margin: 0 auto; font-size: 16px;">
+          <p style="color: #62788F; max-width: 740px; margin: 0 auto; font-size: 16px;">
             حلول برمجية مخصصة بالكامل تعمل أونلاين لضمان سرعة الصيانة وحل المشكلات والتحديثات الفورية، مع استمرارية العمل أوفلاين دون توقف عند انقطاع الإنترنت بنسبة 100% ومزامنة تلقائية لكافة البيانات فور عودة الاتصال.
           </p>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px;">
           <!-- System 1: POS -->
-          <article id="pos" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px;">
-            <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #21C87A;">
+          <article id="pos" style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 16px; padding: 28px;">
+            <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #257DB6;">
               نظام نقاط البيع والكاشير المتقدم (POS System)
             </h3>
-            <p style="color: #CBD5E1; margin-bottom: 14px; font-size: 15px;">
+            <p style="color: #3A5370; margin-bottom: 14px; font-size: 15px;">
               منظومة كاشير ومبيعات فائقة السرعة والاستقرار، مصممة لتحمل ضغط العمل في المتاجر، السوبرماركت، الصيدليات، ومحلات التجزئة بمختلف أحجامها.
             </p>
-            <p style="color: #94A3B8; margin-bottom: 16px; font-size: 14px;">
+            <p style="color: #62788F; margin-bottom: 16px; font-size: 14px;">
               يعمل النظام بشكل أساسي أونلاين لسهولة الإدارة والصيانة اللحظية، مع دعم كامل للتشغيل أوفلاين في حال انقطاع الشبكة وتزامن تلقائي فوري لقواعد البيانات فور توفر الاتصال دون تعطيل طوابير العملاء.
             </p>
-            <ul style="color: #94A3B8; padding-right: 20px; margin-bottom: 20px; font-size: 14px;">
+            <ul style="color: #62788F; padding-right: 20px; margin-bottom: 20px; font-size: 14px;">
               <li>دعم كامل لأجهزة قراءة الباركود، طابعات الفواتير الحرارية، وأدراج النقدية والموازين الإلكترونية.</li>
               <li>إدارة دقيقة للمخزون اللحظي مع تنبيهات عند اقتراب نفاد المنتجات أو انتهاء صلاحياتها.</li>
               <li>إصدار الفواتير الإلكترونية المعتمدة المتوافقة مع متطلبات الضرائب والفاتورة الإلكترونية.</li>
               <li>لوحات تحكم إحصائية وتقارير أرباح ومبيعات فورية وتحليلات للأصناف الأكثر مبيعاً وركوداً.</li>
               <li>نظام صلاحيات متقدم يفصل بين مهام الكاشير، المشرف، والمدير المالي.</li>
             </ul>
-            <a href="/#contact" style="color: #21C87A; font-weight: 700; text-decoration: none;">اطلب عرض توضيحي لنظام نقاط البيع ←</a>
+            <a href="/#contact" style="color: #257DB6; font-weight: 700; text-decoration: none;">اطلب عرض توضيحي لنظام نقاط البيع ←</a>
           </article>
 
           <!-- System 2: Clinic -->
-          <article id="clinic" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px;">
-            <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #21C87A;">
+          <article id="clinic" style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 16px; padding: 28px;">
+            <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #257DB6;">
               نظام إدارة العيادات والمراكز الطبية (Clinic EMR)
             </h3>
-            <p style="color: #CBD5E1; margin-bottom: 14px; font-size: 15px;">
+            <p style="color: #3A5370; margin-bottom: 14px; font-size: 15px;">
               منصة طبية إلكترونية متكاملة صُممت بالتعاون مع استشاريين وأطباء لتنظيم العمل الطبي والإداري داخل العيادات التخصصية والمجمعات الطبية.
             </p>
-            <p style="color: #94A3B8; margin-bottom: 16px; font-size: 14px;">
+            <p style="color: #62788F; margin-bottom: 16px; font-size: 14px;">
               يمكّن النظام الطبيب من الوصول إلى الملف الصحي الإلكتروني للمريض بضغطة زر واحدة، مع تسجيل التشخيص والروشتات ومقارنة الفحوصات الطبية عبر الزمن.
             </p>
-            <ul style="color: #94A3B8; padding-right: 20px; margin-bottom: 20px; font-size: 14px;">
+            <ul style="color: #62788F; padding-right: 20px; margin-bottom: 20px; font-size: 14px;">
               <li>جدولة ذكية للمواعيد وتنظيم شاشات الانتظار لتفادي التكدس وتقليل وقت انتظار المرضى.</li>
               <li>الملف الطبي الإلكتروني الموحد (Electronic Medical Record) لتسجيل التاريخ المرضي والفحوصات.</li>
               <li>منظومة الروشتة الإلكترونية الذكية مع مكتبة أدوية شاملة وتنبيهات التداخلات الدوائية والجرعات.</li>
               <li>محاسبة طبية متقدمة تشمل إدارة كشوفات التأمين الصحي، الإيرادات، ونسب الأطباء والشركاء.</li>
               <li>إرسال تذكيرات آلية للمرضى بمواعيد الزيارة والمتابعة عبر رسائل الواتساب والرسائل النصية.</li>
             </ul>
-            <a href="/#contact" style="color: #21C87A; font-weight: 700; text-decoration: none;">اطلب تجربة نظام العيادات والمراكز الطبية ←</a>
+            <a href="/#contact" style="color: #257DB6; font-weight: 700; text-decoration: none;">اطلب تجربة نظام العيادات والمراكز الطبية ←</a>
           </article>
 
           <!-- System 3: Warehouse -->
-          <article id="warehouse" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px;">
-            <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #21C87A;">
+          <article id="warehouse" style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 16px; padding: 28px;">
+            <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #257DB6;">
               نظام إدارة المخازن والمستودعات والعهد والأصول
             </h3>
-            <p style="color: #CBD5E1; margin-bottom: 14px; font-size: 15px;">
+            <p style="color: #3A5370; margin-bottom: 14px; font-size: 15px;">
               حل رقمي شامل يضع حداً لفقدان الأصول والخلل في الأرصدة المخزنية، مخصص لشركات المقاولات، المصانع، وشركات التوزيع والتوريدات.
             </p>
-            <p style="color: #94A3B8; margin-bottom: 16px; font-size: 14px;">
+            <p style="color: #62788F; margin-bottom: 16px; font-size: 14px;">
               يتيح النظام الرقابة الصارمة على كل قطعة أو معدة منذ دخولها المخزن وحتى تسليمها كعهدة للموظف واستردادها أو تكهينها.
             </p>
-            <ul style="color: #94A3B8; padding-right: 20px; margin-bottom: 20px; font-size: 14px;">
+            <ul style="color: #62788F; padding-right: 20px; margin-bottom: 20px; font-size: 14px;">
               <li>إدارة دورات المخزن الكاملة: أذونات الإضافة والاستلام، أذونات الصرف، والتحويل بين المستودعات.</li>
               <li>تتبع الأصول والعدد والأدوات الفردية باستخدام الأرقام التسلسلية وباركود QR الرقمي.</li>
               <li>منظومة جرد دوري وسنوي سريعة تدعم المسح الضوئي عبر أجهزة الهاتف المحمول والماسحات اللاسلكية.</li>
               <li>تقييم المخزون بأدق الطرق المحاسبية المعتمدة (FIFO و LIFO والمتوسط المرجح للأسعار).</li>
               <li>إشعارات فورية بالهالك والراكد وتنبيهات بوصول الأصناف لحد الطلب الأدنى والأقصى.</li>
             </ul>
-            <a href="/#contact" style="color: #21C87A; font-weight: 700; text-decoration: none;">اطلب استشارة نظام إدارة المخازن ←</a>
+            <a href="/#contact" style="color: #257DB6; font-weight: 700; text-decoration: none;">اطلب استشارة نظام إدارة المخازن ←</a>
           </article>
         </div>
       </section>
 
       <!-- About Section -->
-      <section id="about" style="margin-bottom: 72px; background: rgba(255,255,255,0.02); border-radius: 20px; padding: 36px; border: 1px solid rgba(255,255,255,0.06);">
-        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 16px; color: #FFFFFF;">
+      <section id="about" style="margin-bottom: 72px; background: rgba(37,125,182,0.02); border-radius: 20px; padding: 36px; border: 1px solid rgba(37,125,182,0.06);">
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 16px; color: #0F2A46;">
           عن استوديو شغال لتطوير البرمجيات (About Shaghal Studio)
         </h2>
-        <p style="color: #CBD5E1; margin-bottom: 16px; font-size: 16px;">
+        <p style="color: #3A5370; margin-bottom: 16px; font-size: 16px;">
           تأسس استوديو <strong>شغال (Shaghal)</strong> في القاهرة، مصر، ليكون الشريك التقني الموثوق لأصحاب الأعمال والشركات الطموحة في الوطن العربي. نحن نؤمن بأن نجاح أي منظومة تشغيلية لا يتحقق بالاعتماد على برمجيات تجارية معقدة مليئة بالخصائص غير المفيدة، بل ببناء نظام خفيف، سريع، ومفصل بدقة متناهية ليطابق خطة عملك الحقيقية.
         </p>
-        <p style="color: #CBD5E1; margin-bottom: 16px; font-size: 16px;">
+        <p style="color: #3A5370; margin-bottom: 16px; font-size: 16px;">
           نعتمد في شغال على أحدث تقنيات الويب وقواعد البيانات السحابية والمحلية، مع الالتزام الصارم بمبدأ الأمان وتشفير البيانات والنسخ الاحتياطي التلقائي. أنظمتنا ليست مجرد واجهات جميلة، بل محركات برمجية ترفع إنتاجية موظفيك وتقلل الهدر المالي والزمني.
         </p>
-        <p style="color: #94A3B8; font-size: 15px;">
-          يمكنك مراجعة سابقة أعمالنا في قسم <a href="/#work" style="color: #21C87A; text-decoration: underline;">نماذج الأعمال</a> أو قراءة إجابات أهم الاستفسارات في <a href="/#faq" style="color: #21C87A; text-decoration: underline;">قسم الأسئلة الشائعة</a>.
+        <p style="color: #62788F; font-size: 15px;">
+          يمكنك مراجعة سابقة أعمالنا في قسم <a href="/#work" style="color: #257DB6; text-decoration: underline;">نماذج الأعمال</a> أو قراءة إجابات أهم الاستفسارات في <a href="/#faq" style="color: #257DB6; text-decoration: underline;">قسم الأسئلة الشائعة</a>.
         </p>
       </section>
 
       <!-- Methodology / Process Section -->
       <section id="process" style="margin-bottom: 72px;">
-        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px; color: #FFFFFF;">
+        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px; color: #0F2A46;">
           منهجية ومراحل تطوير الأنظمة في شغال
         </h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px;">
-          <div style="padding: 24px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <strong style="color: #21C87A; font-size: 18px; display: block; margin-bottom: 10px;">1. دراسة وتحليل الاحتياج</strong>
-            <p style="color: #94A3B8; font-size: 14px; margin: 0;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.02); border-radius: 12px; border: 1px solid rgba(37,125,182,0.06);">
+            <strong style="color: #257DB6; font-size: 18px; display: block; margin-bottom: 10px;">1. دراسة وتحليل الاحتياج</strong>
+            <p style="color: #62788F; font-size: 14px; margin: 0;">
               نقضي وقتاً مع فريقك لفهم كل خطوة في دورة العمل الحالية، ونحدد المشاكل التشغيلية التي يجب أن يحلها النظام الجديد بدقة ووضوح.
             </p>
           </div>
-          <div style="padding: 24px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <strong style="color: #21C87A; font-size: 18px; display: block; margin-bottom: 10px;">2. التصميم وهندسة البرمجية</strong>
-            <p style="color: #94A3B8; font-size: 14px; margin: 0;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.02); border-radius: 12px; border: 1px solid rgba(37,125,182,0.06);">
+            <strong style="color: #257DB6; font-size: 18px; display: block; margin-bottom: 10px;">2. التصميم وهندسة البرمجية</strong>
+            <p style="color: #62788F; font-size: 14px; margin: 0;">
               نرسم مخططات قواعد البيانات وهندسة النظام، ونصمم واجهات استخدام بديهية تمكّن الموظف من إنجاز المهام بأقل عدد من النقرات.
             </p>
           </div>
-          <div style="padding: 24px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <strong style="color: #21C87A; font-size: 18px; display: block; margin-bottom: 10px;">3. البرمجة والاختبار المكثف</strong>
-            <p style="color: #94A3B8; font-size: 14px; margin: 0;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.02); border-radius: 12px; border: 1px solid rgba(37,125,182,0.06);">
+            <strong style="color: #257DB6; font-size: 18px; display: block; margin-bottom: 10px;">3. البرمجة والاختبار المكثف</strong>
+            <p style="color: #62788F; font-size: 14px; margin: 0;">
               نكتب كوداً برمجياً نظيفاً ونخضع النظام لاختبارات ضغط قاسية، اختبارات أمان، وتجارب محاكاة انقطاع الإنترنت والمزامنة التلقائية لضمان موثوقية كاملة.
             </p>
           </div>
-          <div style="padding: 24px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <strong style="color: #21C87A; font-size: 18px; display: block; margin-bottom: 10px;">4. التدريب، الإطلاق، والدعم</strong>
-            <p style="color: #94A3B8; font-size: 14px; margin: 0;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.02); border-radius: 12px; border: 1px solid rgba(37,125,182,0.06);">
+            <strong style="color: #257DB6; font-size: 18px; display: block; margin-bottom: 10px;">4. التدريب، الإطلاق، والدعم</strong>
+            <p style="color: #62788F; font-size: 14px; margin: 0;">
               نقدم تدريباً مكثفاً لجميع المستخدمين، ونوفر أدلة مصورة وخط دعم فني مباشر لضمان استقرار العمل بعد الإطلاق الحي للبرنامج.
             </p>
           </div>
@@ -404,47 +1140,47 @@
 
       <!-- System Capabilities & Use Cases Section -->
       <section id="work" style="margin-bottom: 72px;">
-        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 12px; color: #FFFFFF;">
+        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 12px; color: #0F2A46;">
           قدرات الأنظمة وحالات الاستخدام
         </h2>
-        <p style="color: #94A3B8; text-align: center; max-width: 650px; margin: 0 auto 32px auto; font-size: 15px;">
+        <p style="color: #62788F; text-align: center; max-width: 650px; margin: 0 auto 32px auto; font-size: 15px;">
           أنظمة مبنية لتتحمل بيئة العمل الحقيقية — ليست عروضاً تجريبية.
         </p>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-          <div style="padding: 24px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-            <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">١. منظومة نقاط البيع — مصممة لسلاسل التجزئة متعددة الفروع</h3>
-            <p style="color: #CBD5E1; font-size: 14px; margin-bottom: 14px; line-height: 1.7;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.03); border-radius: 12px; border: 1px solid rgba(37,125,182,0.08);">
+            <h3 style="font-size: 18px; font-weight: 700; color: #0F2A46; margin-bottom: 8px;">١. منظومة نقاط البيع — مصممة لسلاسل التجزئة متعددة الفروع</h3>
+            <p style="color: #3A5370; font-size: 14px; margin-bottom: 14px; line-height: 1.7;">
               ربط مركزي بين الفروع بقاعدة بيانات موحدة، مع دعم كتالوج يتجاوز عشرات الآلاف من الأصناف، وتكامل مباشر مع موازين الباركود والطابعات الحرارية وأدراج النقدية. النظام يعمل أوفلاين بالكامل ويزامن العمليات تلقائياً عند عودة الاتصال، فلا يتوقف طابور الكاشير مهما حدث للشبكة.
             </p>
-            <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #21C87A; font-size: 13px; font-weight: 700; text-decoration: none;">طلب استشارة وعرض تجريبي عبر واتساب ←</a>
+            <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #257DB6; font-size: 13px; font-weight: 700; text-decoration: none;">طلب استشارة وعرض تجريبي عبر واتساب ←</a>
           </div>
-          <div style="padding: 24px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-            <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">٢. منصة العيادات — مصممة للمجمعات الطبية متعددة التخصصات</h3>
-            <p style="color: #CBD5E1; font-size: 14px; margin-bottom: 14px; line-height: 1.7;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.03); border-radius: 12px; border: 1px solid rgba(37,125,182,0.08);">
+            <h3 style="font-size: 18px; font-weight: 700; color: #0F2A46; margin-bottom: 8px;">٢. منصة العيادات — مصممة للمجمعات الطبية متعددة التخصصات</h3>
+            <p style="color: #3A5370; font-size: 14px; margin-bottom: 14px; line-height: 1.7;">
               إدارة عدة عيادات وتخصصات داخل كيان واحد بسجل طبي إلكتروني مشفّر، مع جدولة مواعيد آلية وشاشات انتظار تفاعلية، ومحاسبة أطباء بثلاثة نماذج (نسبة من الكشف، مرتب ثابت، إيجار كرسي أو عيادة)، ونظام مطالبات تأمين ونسب تحمل.
             </p>
-            <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #21C87A; font-size: 13px; font-weight: 700; text-decoration: none;">طلب استشارة وعرض تجريبي عبر واتساب ←</a>
+            <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #257DB6; font-size: 13px; font-weight: 700; text-decoration: none;">طلب استشارة وعرض تجريبي عبر واتساب ←</a>
           </div>
-          <div style="padding: 24px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-            <h3 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">٣. نظام المخازن والعهد — مصمم لشركات المقاولات والمصانع</h3>
-            <p style="color: #CBD5E1; font-size: 14px; margin-bottom: 14px; line-height: 1.7;">
+          <div style="padding: 24px; background: rgba(37,125,182,0.03); border-radius: 12px; border: 1px solid rgba(37,125,182,0.08);">
+            <h3 style="font-size: 18px; font-weight: 700; color: #0F2A46; margin-bottom: 8px;">٣. نظام المخازن والعهد — مصمم لشركات المقاولات والمصانع</h3>
+            <p style="color: #3A5370; font-size: 14px; margin-bottom: 14px; line-height: 1.7;">
               تتبع إلكتروني للأصول والمعدات عبر مواقع متعددة بالأرقام التسلسلية وباركود QR، مع دورات صرف واسترجاع رقمية، وجرد بالمسح الضوئي من الموبايل، وتقييم مخزون بطرق FIFO و LIFO والمتوسط المرجح.
             </p>
-            <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #21C87A; font-size: 13px; font-weight: 700; text-decoration: none;">طلب استشارة وعرض تجريبي عبر واتساب ←</a>
+            <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #257DB6; font-size: 13px; font-weight: 700; text-decoration: none;">طلب استشارة وعرض تجريبي عبر واتساب ←</a>
           </div>
         </div>
       </section>
 
       <!-- Current Clients & Confidentiality Section -->
       <section id="testimonials" style="margin-bottom: 72px;">
-        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 16px; color: #FFFFFF;">
+        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 16px; color: #0F2A46;">
           عملاؤنا الحاليون
         </h2>
-        <div style="max-width: 820px; margin: 0 auto; padding: 32px 24px; background: rgba(33,200,122,0.05); border-radius: 16px; border: 1px solid rgba(33,200,122,0.2); text-align: center;">
-          <p style="color: #E2E8F0; font-size: 16px; margin-bottom: 24px; line-height: 1.8;">
+        <div style="max-width: 820px; margin: 0 auto; padding: 32px 24px; background: rgba(37,125,182,0.05); border-radius: 16px; border: 1px solid rgba(37,125,182,0.2); text-align: center;">
+          <p style="color: #3A5370; font-size: 16px; margin-bottom: 24px; line-height: 1.8;">
             نعمل حالياً مع مراكز طبية في مصر لتشغيل منظومة إدارة العيادات. نحترم خصوصية عملائنا، ونوفر مرجعية مباشرة (Reference Call) للعملاء الجادين عند طلبها في مرحلة العرض التجريبي.
           </p>
-          <a href="https://wa.me/201033844561?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%B7%D9%84%D8%A8%20%D9%85%D9%83%D8%A7%D9%84%D9%85%D8%A9%20%D9%85%D8%B1%D8%AC%D8%B9%D9%8A%D8%A9%20(Reference%20Call)%20%D9%88%D8%B9%D8%B1%D8%B6%20%D8%AA%D8%AC%D8%B1%D9%8A%D8%A8%D9%8A." target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #21C87A; color: #101828; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 15px;">
+          <a href="https://wa.me/201033844561?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%B7%D9%84%D8%A8%20%D9%85%D9%83%D8%A7%D9%84%D9%85%D8%A9%20%D9%85%D8%B1%D8%AC%D8%B9%D9%8A%D8%A9%20(Reference%20Call)%20%D9%88%D8%B9%D8%B1%D8%B6%20%D8%AA%D8%AC%D8%B1%D9%8A%D8%A8%D9%8A." target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #257DB6; color: #FFFFFF; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 15px;">
             تواصل عبر واتساب لطلب المرجعية (Reference Call)
           </a>
         </div>
@@ -452,37 +1188,37 @@
 
       <!-- FAQ Section with Schema-aligned answers -->
       <section id="faq" style="margin-bottom: 72px;">
-        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px; color: #FFFFFF;">
+        <h2 style="font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px; color: #0F2A46;">
           الأسئلة الأكثر شيوعاً حول أنظمة شغال (FAQ)
         </h2>
         <div style="display: flex; flex-direction: column; gap: 16px; max-width: 820px; margin: 0 auto;">
-          <details style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 18px 22px;">
-            <summary style="font-weight: 700; color: #FFFFFF; cursor: pointer; font-size: 16px;">هل الأنظمة التي يطورها شغال تعمل بدون إنترنت (Offline Mode)؟</summary>
-            <p style="color: #94A3B8; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
+          <details style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 10px; padding: 18px 22px;">
+            <summary style="font-weight: 700; color: #0F2A46; cursor: pointer; font-size: 16px;">هل الأنظمة التي يطورها شغال تعمل بدون إنترنت (Offline Mode)؟</summary>
+            <p style="color: #62788F; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
               الأنظمة مصممة لتعمل أونلاين (Online) كخيار أساسي لأن التشغيل السحابي هو الأفضل للصيانة السريعة، المتابعة المباشرة، وحل أي مشكلات برمجية فوراً وتوفير التحديثات. وفي حال انقطاع الإنترنت، يتحول النظام فوراً للعمل أوفلاين (Offline) دون أي توقف في حركة الكاشير أو العيادات أو المستودعات، وبمجرد عودة الإنترنت يقوم النظام بمزامنة كافة العمليات تلقائياً في الخلفية وبدون أي تداخل بشري.
             </p>
           </details>
-          <details style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 18px 22px;">
-            <summary style="font-weight: 700; color: #FFFFFF; cursor: pointer; font-size: 16px;">ما هي المدة المتوقعة لتصميم وتطوير النظام البرمجي وتسليمه؟</summary>
-            <p style="color: #94A3B8; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
+          <details style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 10px; padding: 18px 22px;">
+            <summary style="font-weight: 700; color: #0F2A46; cursor: pointer; font-size: 16px;">ما هي المدة المتوقعة لتصميم وتطوير النظام البرمجي وتسليمه؟</summary>
+            <p style="color: #62788F; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
               تعتمد المدة على نطاق ومتطلبات المشروع. في المتوسط، تستغرق الأنظمة الأساسية المخصصة ما بين <strong>٢١ إلى ٤٥ يوم عمل</strong> تشمل التحليل والبرمجة والاختبار. أما المنظومات الكبيرة متعددة الفروع والفروع المترابطة فتستغرق من ٦٠ إلى ٩٠ يوماً، مع التزامنا الكامل بجدول زمني ومراحل تسليم موثقة في العقد.
             </p>
           </details>
-          <details style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 18px 22px;">
-            <summary style="font-weight: 700; color: #FFFFFF; cursor: pointer; font-size: 16px;">هل يمكن إضافة ميزات وتعديلات جديدة للنظام في المستقبل بعد التسليم؟</summary>
-            <p style="color: #94A3B8; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
+          <details style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 10px; padding: 18px 22px;">
+            <summary style="font-weight: 700; color: #0F2A46; cursor: pointer; font-size: 16px;">هل يمكن إضافة ميزات وتعديلات جديدة للنظام في المستقبل بعد التسليم؟</summary>
+            <p style="color: #62788F; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
               بالتأكيد. كل برمجيات استوديو شغال مبنية وفق بنية معمارية معيارية قابلة للتوسع (Modular Architecture). هذا التصميم يتيح لك إضافة أقسام جديدة، ربط فروع إضافية، أو التكامل مع أنظمة دفع وبوابات إلكترونية أخرى كلما كبرت وتوسعت أعمالك، دون الحاجة لإعادة بناء النظام من الصفر.
             </p>
           </details>
-          <details style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 18px 22px;">
-            <summary style="font-weight: 700; color: #FFFFFF; cursor: pointer; font-size: 16px;">هل يشمل التعاقد تدريب الفريق على استخدام النظام والدعم الفني المستمر؟</summary>
-            <p style="color: #94A3B8; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
+          <details style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 10px; padding: 18px 22px;">
+            <summary style="font-weight: 700; color: #0F2A46; cursor: pointer; font-size: 16px;">هل يشمل التعاقد تدريب الفريق على استخدام النظام والدعم الفني المستمر؟</summary>
+            <p style="color: #62788F; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
               نعم، مرحلة التسليم تشمل جلسات تدريب عملية مفصلة لكافة الموظفين والمديرين، مع توفير فيديوهات إرشادية وكتيبات استخدام خطوة بخطوة. كما نوفر عقود صيانة ودعم فني دوري تشمل التحديثات الأمنية المستمرة والنسخ الاحتياطي السحابي.
             </p>
           </details>
-          <details style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 18px 22px;">
-            <summary style="font-weight: 700; color: #FFFFFF; cursor: pointer; font-size: 16px;">ما هي التكلفة التقديرية لبناء نظام برمجي مخصص؟</summary>
-            <p style="color: #94A3B8; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
+          <details style="background: rgba(37,125,182,0.03); border: 1px solid rgba(37,125,182,0.08); border-radius: 10px; padding: 18px 22px;">
+            <summary style="font-weight: 700; color: #0F2A46; cursor: pointer; font-size: 16px;">ما هي التكلفة التقديرية لبناء نظام برمجي مخصص؟</summary>
+            <p style="color: #62788F; margin-top: 12px; margin-bottom: 0; font-size: 15px; line-height: 1.8;">
               تختلف التكلفة باختلاف حجم المتطلبات وعدد الفروع والمستخدمين وطبيعة قواعد البيانات المطلوبة. نحن نقدم استشارة فنية مجانية لدراسة احتياجاتك وتقديم عرض أسعار واضح وشفاف ومفصل ببنود الدفعات دون أي تكاليف خفية.
             </p>
           </details>
@@ -490,23 +1226,23 @@
       </section>
 
       <!-- Contact Section with External Links -->
-      <section id="contact" style="text-align: center; background: linear-gradient(180deg, rgba(33,200,122,0.08) 0%, rgba(16,24,40,0) 100%); border-radius: 20px; padding: 48px 24px; border: 1px solid rgba(33,200,122,0.2);">
-        <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 16px; color: #FFFFFF;">
+      <section id="contact" style="text-align: center; background: linear-gradient(180deg, rgba(37,125,182,0.08) 0%, rgba(16,24,40,0) 100%); border-radius: 20px; padding: 48px 24px; border: 1px solid rgba(37,125,182,0.2);">
+        <h2 style="font-size: 32px; font-weight: 900; margin-bottom: 16px; color: #0F2A46;">
           تواصل مع استوديو شغال واطلب استشارة نظامك البرمجي
         </h2>
-        <p style="color: #94A3B8; max-width: 650px; margin: 0 auto 28px auto; font-size: 16px;">
+        <p style="color: #62788F; max-width: 650px; margin: 0 auto 28px auto; font-size: 16px;">
           فريقنا التقني جاهز لمناقشة فكرتك وتحويلها إلى نظام برمجي عملي يشغّل مشروعك بكفاءة وذكاء.
         </p>
         <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; font-size: 15px;">
-          <div style="color: #CBD5E1;">📧 البريد الرسمي: <a href="mailto:mohamedshafy2130@gmail.com" style="color: #21C87A; font-weight: 700;">mohamedshafy2130@gmail.com</a></div>
-          <div style="color: #CBD5E1;">💬 واتساب المبيعات والدعم: <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #21C87A; font-weight: 700; direction: ltr; display: inline-block;">01033844561</a></div>
-          <div style="color: #CBD5E1;">📍 المقر: <a href="https://maps.google.com/?q=Cairo,Egypt" target="_blank" rel="noopener noreferrer" style="color: #FFFFFF; text-decoration: underline;">القاهرة، جمهورية مصر العربية (خرائط Google)</a></div>
+          <div style="color: #3A5370;">📧 البريد الرسمي: <a href="mailto:mohamedshafy2130@gmail.com" style="color: #257DB6; font-weight: 700;">mohamedshafy2130@gmail.com</a></div>
+          <div style="color: #3A5370;">💬 واتساب المبيعات والدعم: <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #257DB6; font-weight: 700; direction: ltr; display: inline-block;">01033844561</a></div>
+          <div style="color: #3A5370;">📍 المقر: <a href="https://maps.google.com/?q=Cairo,Egypt" target="_blank" rel="noopener noreferrer" style="color: #257DB6; text-decoration: underline;">القاهرة، جمهورية مصر العربية (خرائط Google)</a></div>
         </div>
         <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
-          <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="background: #21C87A; color: #101828; padding: 14px 34px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 15px; display: inline-block;">
+          <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="background: #257DB6; color: #FFFFFF; padding: 14px 34px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 15px; display: inline-block;">
             محادثة فورية عبر واتساب (01033844561)
           </a>
-          <a href="mailto:mohamedshafy2130@gmail.com" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #FFFFFF; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; display: inline-block;">
+          <a href="mailto:mohamedshafy2130@gmail.com" style="background: rgba(37,125,182,0.08); border: 1px solid rgba(37,125,182,0.3); color: #0F2A46; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; display: inline-block;">
             راسلنا عبر البريد الإلكتروني
           </a>
         </div>
@@ -514,40 +1250,40 @@
     </main>
 
     <!-- Footer with Crawlable Internal Links & External Authority Links -->
-    <footer style="background: #090E1A; border-top: 1px solid rgba(255,255,255,0.08); padding: 36px 24px; text-align: center; color: #64748B; font-size: 13px;">
-      <p style="margin-bottom: 12px; color: #94A3B8;">
+    <footer style="background: #F3F8FC; border-top: 1px solid rgba(37,125,182,0.08); padding: 36px 24px; text-align: center; color: #62788F; font-size: 13px;">
+      <p style="margin-bottom: 12px; color: #62788F;">
         © 2026 شغال (Shaghal) — جميع الحقوق محفوظة. استوديو الأنظمة الرقمية والبرمجية المخصصة.
       </p>
 
       <!-- True Relative Path Internal Links (Resolves "No internal links found") -->
       <nav aria-label="روابط الموقع الداخلية" style="margin-bottom: 16px;">
-        <a href="/" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">الرئيسية</a> |
-        <a href="/#services" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">أنظمتنا</a> |
-        <a href="/#pos" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">نقاط البيع POS</a> |
-        <a href="/#clinic" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">إدارة العيادات EMR</a> |
-        <a href="/#warehouse" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">المخازن والعهد</a> |
-        <a href="/#about" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">عن شغال</a> |
-        <a href="/#process" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">منهجية العمل</a> |
-        <a href="/#work" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">قدرات الأنظمة</a> |
-        <a href="/#testimonials" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">عملاؤنا الحاليون</a> |
-        <a href="/#faq" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">الأسئلة الشائعة</a> |
-        <a href="/#contact" style="color: #21C87A; text-decoration: none; margin: 0 8px;">تواصل معنا</a> |
-        <a href="/sitemap.xml" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">خريطة الموقع (Sitemap)</a> |
-        <a href="/robots.txt" style="color: #94A3B8; text-decoration: none; margin: 0 8px;">ملف Robots</a>
+        <a href="/" style="color: #62788F; text-decoration: none; margin: 0 8px;">الرئيسية</a> |
+        <a href="/#services" style="color: #62788F; text-decoration: none; margin: 0 8px;">أنظمتنا</a> |
+        <a href="/#pos" style="color: #62788F; text-decoration: none; margin: 0 8px;">نقاط البيع POS</a> |
+        <a href="/#clinic" style="color: #62788F; text-decoration: none; margin: 0 8px;">إدارة العيادات EMR</a> |
+        <a href="/#warehouse" style="color: #62788F; text-decoration: none; margin: 0 8px;">المخازن والعهد</a> |
+        <a href="/#about" style="color: #62788F; text-decoration: none; margin: 0 8px;">عن شغال</a> |
+        <a href="/#process" style="color: #62788F; text-decoration: none; margin: 0 8px;">منهجية العمل</a> |
+        <a href="/#work" style="color: #62788F; text-decoration: none; margin: 0 8px;">قدرات الأنظمة</a> |
+        <a href="/#testimonials" style="color: #62788F; text-decoration: none; margin: 0 8px;">عملاؤنا الحاليون</a> |
+        <a href="/#faq" style="color: #62788F; text-decoration: none; margin: 0 8px;">الأسئلة الشائعة</a> |
+        <a href="/#contact" style="color: #257DB6; text-decoration: none; margin: 0 8px;">تواصل معنا</a> |
+        <a href="/sitemap.xml" style="color: #62788F; text-decoration: none; margin: 0 8px;">خريطة الموقع (Sitemap)</a> |
+        <a href="/robots.txt" style="color: #62788F; text-decoration: none; margin: 0 8px;">ملف Robots</a>
       </nav>
 
       <!-- Verified External Authority Links (Resolves "No external links found") -->
       <div style="margin-top: 12px;">
-        <span style="color: #64748B; margin-left: 8px;">تواصل رسمي:</span>
-        <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #21C87A; text-decoration: none; margin: 0 6px;">واتساب: 01033844561</a> •
-        <a href="mailto:mohamedshafy2130@gmail.com" style="color: #94A3B8; text-decoration: none; margin: 0 6px;">mohamedshafy2130@gmail.com</a> •
-        <a href="https://maps.google.com/?q=Cairo,Egypt" target="_blank" rel="noopener noreferrer" style="color: #94A3B8; text-decoration: none; margin: 0 6px;">خرائط Google</a>
+        <span style="color: #62788F; margin-left: 8px;">تواصل رسمي:</span>
+        <a href="https://wa.me/201033844561" target="_blank" rel="noopener noreferrer" style="color: #257DB6; text-decoration: none; margin: 0 6px;">واتساب: 01033844561</a> •
+        <a href="mailto:mohamedshafy2130@gmail.com" style="color: #62788F; text-decoration: none; margin: 0 6px;">mohamedshafy2130@gmail.com</a> •
+        <a href="https://maps.google.com/?q=Cairo,Egypt" target="_blank" rel="noopener noreferrer" style="color: #62788F; text-decoration: none; margin: 0 6px;">خرائط Google</a>
       </div>
     </footer>
   </div>
 
   <noscript>
-    <div style="padding: 24px; font-family: 'Cairo', sans-serif; background: #101828; color: #F7F9FC; text-align: center;">
+    <div style="padding: 24px; font-family: 'Cairo', sans-serif; background: #FFFFFF; color: #0F2A46; text-align: center;">
       <p>لتجربة تصفح تفاعلية كاملة، يُرجى تفعيل جافا سكريبت في متصفحك.</p>
     </div>
   </noscript>

@@ -1,673 +1,384 @@
-import shotDashboard    from "./assets/clinic/dashboard.png";
-import shotCalendar     from "./assets/clinic/calendar.png";
-import shotPatientFile  from "./assets/clinic/patient-file.png";
-import shotPrescription from "./assets/clinic/e-prescription.png";
-import shotPricing      from "./assets/clinic/services-pricing.png";
-import shotReports      from "./assets/clinic/financial-reports.png";
+import clinicDashboard    from "./assets/clinic/dashboard.webp";
+import clinicCalendar     from "./assets/clinic/calendar.webp";
+import clinicProfile      from "./assets/clinic/patient-profile.webp";
+import clinicAppointments from "./assets/clinic/appointments.webp";
+import clinicInvoices     from "./assets/clinic/invoices.webp";
+import clinicReports      from "./assets/clinic/reports.webp";
+import clinicPatients     from "./assets/clinic/patients.webp";
 
-import posDashboard     from "./assets/pos/dashboard.png";
-import posCashier       from "./assets/pos/pos-cashier.png";
-import posInventory     from "./assets/pos/inventory-receiving.png";
-import posStockAudit    from "./assets/pos/stock-audit.png";
+import posDashboard  from "./assets/pos/dashboard.png";
+import posCashier    from "./assets/pos/pos-cashier.png";
+import posReceiving  from "./assets/pos/inventory-receiving.png";
+import posStockAudit from "./assets/pos/stock-audit.png";
 
 import invDashboard     from "./assets/inventory/dashboard.png";
 import invCatalog       from "./assets/inventory/products-catalog.png";
 import invCustodyIssue  from "./assets/inventory/custody-issue.png";
 import invCustodyReturn from "./assets/inventory/custody-return.png";
 import invCompass       from "./assets/inventory/asset-compass.png";
-import invCategories    from "./assets/inventory/categories.png";
 import invBarcodeModal  from "./assets/inventory/barcode-modal.png";
 
 // ============================================================
-//  Aura Systems — Data Layer (i18n.js)
-//  Specialized: Custom Software & Digital Systems Company
+//  Shaghal — content layer
 // ============================================================
 
-export const BRAND = "Shaghal";
 export const EMAIL = "mohamedshafy2130@gmail.com";
 export const PHONE = "01033844561";
-export const WHATSAPP_URL = "https://wa.me/201033844561";
+export const WHATSAPP_NUMBER = "201033844561";
+export const whatsappLink = (text = "") =>
+  `https://wa.me/${WHATSAPP_NUMBER}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 
-export const CLINIC_SCREENSHOTS = [
-  { src: shotDashboard,    labelAr: "لوحة المؤشرات",         labelEn: "Live KPI Dashboard" },
-  { src: shotCalendar,     labelAr: "التقويم التفاعلي",       labelEn: "Interactive Calendar" },
-  { src: shotPatientFile,  labelAr: "الملف الطبي للمريض",     labelEn: "Digital Patient File" },
-  { src: shotPrescription, labelAr: "الروشتة الإلكترونية",    labelEn: "E-Prescription" },
-  { src: shotPricing,      labelAr: "الخدمات والتسعير",       labelEn: "Services & Pricing" },
-  { src: shotReports,      labelAr: "التقارير المالية",       labelEn: "Financial Reports" },
-];
 
-export const POS_SCREENSHOTS = [
-  { src: posCashier,     labelAr: "شاشة الكاشير ونقطة البيع السريعة", labelEn: "POS Cashier & Checkout Terminal" },
-  { src: posDashboard,   labelAr: "لوحة التحكم والمؤشرات المالية",  labelEn: "Live KPI & Financial Dashboard" },
-  { src: posInventory,   labelAr: "إدارة المخزون واستلام الشحنات", labelEn: "Warehouse & Shipments Receiving" },
-  { src: posStockAudit,  labelAr: "الجرد الدوري ومطابقة الأرصدة",   labelEn: "Periodic Stocktaking & Audit" },
-];
-
-export const WAREHOUSE_SCREENSHOTS = [
-  { src: invDashboard,     labelAr: "لوحة التحكم ومؤشرات الأصول والعهد",         labelEn: "Live KPI & Asset Value Dashboard" },
-  { src: invCatalog,       labelAr: "إدارة المنتجات والأصناف وقائمة الـ SKU",     labelEn: "Product & SKU Inventory Catalog" },
-  { src: invCustodyIssue,  labelAr: "طلبات صرف العهدة ودورة الاعتماد المزدوجة",    labelEn: "Dual-Approval Custody Issue Workflow" },
-  { src: invCustodyReturn, labelAr: "طلبات إرجاع العهد وإدخال المستودع",          labelEn: "Custody Returns & Warehouse Inward" },
-  { src: invCompass,       labelAr: "بوصلة العهد والأجهزة وتتبع السيريال (S/N)",   labelEn: "Asset Compass & Serial Number Tracker" },
-  { src: invCategories,    labelAr: "تصنيف فئات المنتجات والأصول",               labelEn: "Asset & Product Categories" },
-  { src: invBarcodeModal,  labelAr: "المسح الذكي للباركود وإرجاع العهدة",         labelEn: "Smart Barcode Scanner & Return Modal" },
-];
-
-export const TRUST_LOGOS = [
-  { name: "المراكز الطبية التخصصية", tag: "عيادات EMR" },
-  { name: "سلاسل التجزئة والمتاجر", tag: "نقاط بيع POS" },
-  { name: "المستودعات والخدمات اللوجستية", tag: "إدارة المخزون" },
-  { name: "شركات المقاولات والمشاريع", tag: "تتبع العهد والأصول" },
-  { name: "المجمعات والعيادات الفردية", tag: "حجوزات وفواتير" },
-];
-
-// ── Realistic Environment Photos for System Cards ──────────
-export const SERVICE_IMAGES = {
-  pos:       "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=1200&q=80&auto=format&fit=crop",
-  warehouse: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80&auto=format&fit=crop",
-  clinic:    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1200&q=80&auto=format&fit=crop",
+export const SCREENSHOTS = {
+  pos: [
+    { src: posCashier,    ar: "شاشة الكاشير",              en: "Cashier screen" },
+    { src: posDashboard,  ar: "لوحة المؤشرات",             en: "KPI dashboard" },
+    { src: posReceiving,  ar: "استلام البضاعة",            en: "Goods receiving" },
+    { src: posStockAudit, ar: "الجرد ومطابقة الأرصدة",     en: "Stock audit" },
+  ],
+  warehouse: [
+    { src: invDashboard,     ar: "لوحة التحكم",             en: "Dashboard" },
+    { src: invCatalog,       ar: "كتالوج الأصناف",          en: "Product catalog" },
+    { src: invCustodyIssue,  ar: "صرف العهدة",              en: "Custody issue" },
+    { src: invCustodyReturn, ar: "إرجاع العهدة",            en: "Custody return" },
+    { src: invCompass,       ar: "بوصلة العهد والسيريال",   en: "Serial-number tracker" },
+    { src: invBarcodeModal,  ar: "مسح الباركود",            en: "Barcode scanning" },
+  ],
+  clinic: [
+    { src: clinicDashboard,    ar: "لوحة المؤشرات",        en: "Dashboard" },
+    { src: clinicCalendar,     ar: "تقويم المواعيد",       en: "Appointments calendar" },
+    { src: clinicProfile,      ar: "ملف المريض",           en: "Patient profile" },
+    { src: clinicAppointments, ar: "قائمة مواعيد اليوم",   en: "Today's appointments" },
+    { src: clinicInvoices,     ar: "الفواتير والتحصيل",     en: "Billing & collections" },
+    { src: clinicReports,      ar: "التقارير المالية",      en: "Financial reports" },
+    { src: clinicPatients,     ar: "سجل المرضى",           en: "Patient registry" },
+  ],
 };
 
-export const PORTFOLIO_IMAGES = [
-  "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=900&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=900&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&q=80&auto=format&fit=crop",
-];
-
-export const ABOUT_IMAGE =
-  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop";
-
-export const TESTIMONIAL_AVATARS = [
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80&auto=format&fit=crop", // Ahmed (Man)
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80&auto=format&fit=crop", // Khaled (Man)
-  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&q=80&auto=format&fit=crop", // Mona (Woman)
-];
-
-// ── Copy ─────────────────────────────────────────────────────
 export const COPY = {
   ar: {
     dir: "rtl",
-    font: "'Tajawal', sans-serif",
-    displayFont: "'Cairo', sans-serif",
+    langSwitch: "EN",
+    brandAlt: "شغال",
 
     nav: {
-      home:         "الرئيسية",
-      about:        "من إحنا",
-      services:     "أنظمتنا",
-      process:      "طريقة عملنا",
-      work:         "قدرات الأنظمة",
-      testimonials: "عملاؤنا",
-      faq:          "الأسئلة الشائعة",
+      systems: "الأنظمة",
+      why:     "ليه شغال",
+      process: "طريقة الشغل",
+      faq:     "أسئلة شائعة",
+      contact: "تواصل",
     },
-
-    cta:  "اطلب عرض سعر",
-    menu: "القائمة",
+    cta: "اطلب عرض تجريبي",
+    themeLight: "فاتح",
+    themeDark:  "داكن",
 
     hero: {
-      eyebrow:   "استوديو تقني متخصص في الأنظمة الرقمية",
-      titleLine1: "نبني الأنظمة اللي",
-      titleLine2: "بتشغّل مشروعك",
-      title:     "نبني الأنظمة اللي\nبتشغّل مشروعك",
-      titleAccent: "بكفاءة وذكاء",
-      desc:      "نصمم وننفذ أنظمة برمجية مخصصة للشركات والمنشآت — من نقاط البيع وإدارة المخازن لأنظمة العيادات الطبية — كل شيء تحت سقف تقني واحد.",
-      explore:   "استكشف أنظمتنا",
-      portfolio: "قدرات الأنظمة وحالات الاستخدام",
+      eyebrow: "نقاط بيع · عيادات · مخازن",
+      title:   "أنظمة شغّالة،",
+      accent:  "عشان شغلك ما يقفش.",
+      desc:    "بنصمم ونبني أنظمة مخصصة لمحلك أو عيادتك أو مخزنك — بتشتغل أونلاين، وتكمّل أوفلاين لو النت فصل، وفريقنا معاك بعد التسليم.",
+      primary:   "اطلب عرض تجريبي",
+      secondary: "شوف الأنظمة",
+      points: ["تكمّل أوفلاين", "تزامن بين الفروع", "دعم ٢٤/٧"],
+      tabs:   { pos: "نقاط البيع", clinic: "العيادات", warehouse: "المخازن" },
     },
 
-    stats: [
+    sectors: {
+      title: "بنخدم",
+      items: ["السوبر ماركت والمحلات", "العيادات والمراكز الطبية", "المخازن والمستودعات", "شركات المقاولات والمصانع"],
+    },
+
+    systemsSection: {
+      eyebrow: "الأنظمة",
+      title:   "ثلاثة أنظمة، مبنية على مقاس شغلك",
+      desc:    "كل نظام بيتظبط على طريقة عملك الحقيقية — مش برنامج جاهز تتأقلم إنت عليه.",
+      forLabel:      "مناسب لـ",
+      timelineLabel: "مدة التنفيذ",
+      viewScreens:   "شوف الشاشات",
+      requestDemo:   "اطلب ديمو",
+    },
+
+    systems: [
       {
-        n: "١٠٠٪",
-        l: "تشغيل أونلاين ودعم أوفلاين",
-        desc: "الأنظمة تعمل أونلاين لتسهيل الصيانة وحل المشكلات فورياً، وتستمر أوفلاين دون توقف عند انقطاع الإنترنت مع مزامنة تلقائية فور عودته.",
+        key:      "pos",
+        title:    "نظام نقاط البيع",
+        tagline:  "كاشير سريع وتقارير أرباح لحظية.",
+        desc:     "للسوبر ماركت والمحلات: بيع بالباركود، مخزون محدّث لحظياً، وربط كل فروعك في لوحة تحكم واحدة.",
+        audience: "السوبر ماركت وسلاسل المحلات",
+        timeline: "٢١ – ٤٥ يوم عمل",
+        features: [
+          "شاشة كاشير سريعة تدعم الطابعات الحرارية وقارئ الباركود والميزان",
+          "ربط الفروع مع تزامن لحظي للأسعار والمخزون",
+          "صلاحيات للكاشيرات والمديرين",
+          "تقارير مبيعات وأرباح يومية وشهرية",
+        ],
       },
       {
-        n: "٢٤/٧",
-        l: "دعم فني واستجابة",
-        desc: "فريق هندسي متخصص للمتابعة والاستجابة السريعة وحل أي طارئ تشغيلي.",
+        key:      "clinic",
+        title:    "نظام إدارة العيادات",
+        tagline:  "من الحجز للروشتة للفاتورة.",
+        desc:     "للعيادات والمجمعات الطبية: مواعيد، ملفات مرضى رقمية، روشتة إلكترونية، ومحاسبة الأطباء بأكثر من نظام.",
+        audience: "العيادات الفردية والمجمعات متعددة التخصصات",
+        timeline: "٢١ – ٤٥ يوم عمل",
+        features: [
+          "حجز مواعيد وتقويم تفاعلي مع رسائل تذكير SMS",
+          "ملف طبي إلكتروني مشفّر لكل مريض مع الروشتات",
+          "محاسبة الأطباء: نسبة، مرتب ثابت، أو إيجار عيادة",
+          "فواتير وتأمين طبي وتقارير مالية",
+        ],
       },
       {
-        n: "عزل تام",
-        l: "حماية بيانات المنشأة",
-        desc: "قواعد بيانات منفصلة وتشفير للسجلات مع خصوصية تامة لمعلومات المرضى.",
-      },
-      {
-        n: "لحظي",
-        l: "تزامن متعدد الفروع",
-        desc: "مزامنة سحابية آلية للمبيعات والعمليات والمخزون بمجرد عودة الاتصال دون أي تدخل بشري.",
+        key:      "warehouse",
+        title:    "نظام المخازن والعهد",
+        tagline:  "كل قطعة معروفة مكانها ومع مين.",
+        desc:     "للمخازن والمقاولات والمصانع: تتبع الأصول بالسيريال والباركود، ودورة اعتماد واضحة لصرف وإرجاع العهد.",
+        audience: "المستودعات وشركات المقاولات والمصانع",
+        timeline: "٣٠ – ٦٠ يوم عمل",
+        features: [
+          "صرف وإرجاع العهد باعتماد مزدوج (مشرف ومدير)",
+          "تتبع الأصول بالسيريال وباركود QR من الموبايل",
+          "تنبيهات حد الأمان واستيراد وتصدير Excel",
+          "تقييم المخزون FIFO / LIFO / المتوسط المرجّح",
+        ],
       },
     ],
 
-    trustSection: {
-      eyebrow: "القطاعات المدعومة",
-      title:   "قطاعات وأنشطة نخدمها ونشغّلها بأنظمتنا",
-    },
-
-    about: {
-      eyebrow:  "مين إحنا",
-      title:    "استوديو تقني واحد، تخصص واحد",
-      titleAccent: "بناء الأنظمة الرقمية",
-      p1:       "بدأنا كفريق من مهندسي البرمجيات المتخصصين في تطوير أنظمة مخصصة للشركات. لاحظنا إن كتير من المنشآت بتعاني من أنظمة قديمة أو حلول جاهزة مش بتناسب طبيعة شغلها.",
-      p2:       "قررنا نبني شركة متخصصة حصرياً في تطوير وتنفيذ الأنظمة الرقمية المخصصة — نظام يُبنى على قياس احتياجك، مع دعم فني حقيقي بعد التسليم.",
-      imageAlt: "فريق شغال يعمل على تطوير نظام",
-      badgeTitle: "فريق هندسي داخلي",
-      badgeSub:   "مهندسون متخصصون بدون وسطاء",
-      highlights: [
-        ["فريق هندسي داخلي متكامل", "كل مشروع بيتنفذ بفريق من مهندسين متخصصين في داخل الشركة، مش شركاء خارجيين أو فريلانسرز."],
-        ["متابعة لحظية وتحديثات مستمرة", "من لحظة بدء المشروع لحد ما بعد التسليم، بتتابع كل شيء من لوحة تحكم خاصة."],
-        ["سعر شفاف وعرض مكتوب من البداية", "مفيش مفاجآت في السعر أو المدة — بتاخد عرض مكتوب بالتفاصيل قبل ما نبدأ."],
+    why: {
+      eyebrow: "ليه شغال",
+      title:   "مبنية عشان تفضل شغّالة",
+      items: [
+        { icon: "offline", t: "تكمّل من غير نت",    d: "النظام أونلاين للصيانة السريعة، ولو النت فصل يكمّل أوفلاين ويزامن كل حاجة أول ما يرجع." },
+        { icon: "branches", t: "كل الفروع في مكان واحد", d: "المبيعات والمخزون والأسعار بتتزامن تلقائياً بين الفروع." },
+        { icon: "security", t: "بياناتك معزولة",      d: "قاعدة بيانات منفصلة لكل منشأة، وتشفير للسجلات الحساسة زي بيانات المرضى." },
+        { icon: "support",  t: "دعم حقيقي ٢٤/٧",       d: "فريق هندسي داخلي — من غير وسطاء — ودعم وتحديثات ١٢ شهر بعد التسليم." },
       ],
     },
 
-    servicesSection: {
-      eyebrow: "أنظمتنا",
-      title:   "ثلاثة أنظمة رائدة",
-      desc:    "حلول برمجية مخصصة بُنيت لتلبية احتياجات القطاعات الأكثر تعقيداً",
-      learnMore: "اعرف أكتر",
+    process: {
+      eyebrow: "طريقة الشغل",
+      title:   "من أول مكالمة لحد التشغيل",
+      steps: [
+        { t: "نسمعك",          d: "مكالمة نفهم فيها شغلك واحتياجك الحقيقي." },
+        { t: "عرض مكتوب",      d: "خطة وجدول زمني وسعر ثابت — خلال ٢٤ ساعة." },
+        { t: "نبني مع بعض",    d: "مراجعة أسبوعية، وتتابع كل مرحلة من لوحة مشروعك." },
+        { t: "تشغيل ودعم",     d: "تسليم مُختبَر، تدريب لفريقك، ودعم بعد التشغيل." },
+      ],
     },
 
-    services: [
-      {
-        key:       "pos",
-        label:     "٠١",
-        title:     "نظام نقاط البيع",
-        sub:       "POS للسوبر ماركت والمتاجر",
-        desc:      "نظام نقاط بيع متكامل مخصص للسوبر ماركت والمحلات التجارية — إدارة مخزون لحظي، مسح باركود، فواتير إلكترونية، ربط فروع متعددة، صلاحيات كاشيرات، وتقارير أرباح يومية وشهرية.",
-        tags:      ["نقاط بيع", "باركود", "تقارير مبيعات", "إدارة فروع"],
-        timeline:  "٢١ - ٤٥ يوم عمل",
-        tools:     ["React", "Node.js", "PostgreSQL", "Electron", "Thermal Printer SDK"],
-        screenshots: POS_SCREENSHOTS,
-        deliverables: [
-          "واجهة كاشير سريعة متوافقة مع الطابعات الحرارية وأجهزة الباركود",
-          "لوحة تحكم إدارية كاملة مع تقارير المبيعات اليومية والشهرية",
-          "تشغيل أونلاين لسهولة الصيانة الفورية مع استمرارية العمل أوفلاين والمزامنة التلقائية",
-          "نظام ربط فروع مع تزامن لحظي للمخزون والبيانات",
-          "إدارة صلاحيات الكاشيرات والمديرين بالكامل",
-          "دعم فني وتحديثات لمدة 12 شهراً بعد التسليم",
-        ],
-      },
-      {
-        key:       "warehouse",
-        label:     "٠٢",
-        title:     "نظام العهدة وإدارة المخزون",
-        sub:       "Enterprise Custody & Inventory (v2.5)",
-        desc:      "منظومة سحابية متقدمة لإدارة المخازن، الأصول والعهد — دورة اعتماد مزدوجة لصرف وإرجاع العهد، بوصلة تتبع الأرقام التسلسلية (S/N)، ماسح باركود وQR فوري، تنبيهات حد الأمان، ودعم كامل لاستيراد وتصدير إكسل.",
-        tags:      ["إدارة عهد ومخازن", "أصول ثابتة (Assets)", "تتبع سيريال S/N", "اعتماد مزدوج", "باركود ذكي", "تنبيهات حد الأمان"],
-        timeline:  "٣٠ - ٦٠ يوم عمل",
-        tools:     ["React", "Node.js", "PostgreSQL", "Barcode SDK", "Excel XLSX Engine", "RBAC Security"],
-        screenshots: WAREHOUSE_SCREENSHOTS,
-        deliverables: [
-          "لوحة تحكم تفاعلية مع متابعة القيمة الإجمالية للعهد وتنبيهات نقص الرصيد اللحظية",
-          "إدارة سحابية أونلاين للصيانة الفورية مع دعم العمل محلياً ومزامنة الأصول والمخزون",
-          "دورة اعتماد مزدوجة لطلبات صرف وإرجاع العهد (المشرف والمدير) مع توثيق الأسباب",
-          "بوصلة العهد والأجهزة للبحث والتدقيق التاريخي بالأرقام التسلسلية (Serial Numbers)",
-          "إدارة المنتجات والأصناف مع دعم الأصول الثابتة ومشتريات المخزون واستيراد/تصدير Excel",
-          "دعم القارئ اليدوي والكاميرا لمسح الباركود وQR السريع",
-          "صلاحيات متعددة المستويات (RBAC) وأمان عالي لكافة العمليات",
-        ],
-      },
-      {
-        key:       "clinic",
-        label:     "٠٣",
-        title:     "نظام إدارة العيادات",
-        sub:       "Clinic & Medical Center Management",
-        desc:      "نظام طبي متكامل للعيادات والمراكز الصحية — حجز مواعيد إلكتروني، ملفات مرضى رقمية، إدارة جداول الأطباء، فواتير وتأمين طبي، وإشعارات تذكير أوتوماتيكية للمرضى.",
-        tags:      ["حجز مواعيد", "ملفات مرضى", "جدولة أطباء", "فواتير طبية"],
-        timeline:  "٢١ - ٤٥ يوم عمل",
-        tools:     ["React", "Node.js", "PostgreSQL", "Twilio SMS", "PDF Generator"],
-        screenshots: CLINIC_SCREENSHOTS,
-        deliverables: [
-          "نظام حجز مواعيد إلكتروني مع تطبيق للمرضى (Android/iOS)",
-          "تشغيل أونلاين يضمن الصيانة والتحديثات الفورية مع استمرارية العمل بدون إنترنت",
-          "ملفات المرضى الرقمية مع السجل الطبي الكامل والوصفات",
-          "لوحة تحكم الأطباء والجداول مع تنبيهات المواعيد القادمة",
-          "نظام الفواتير والتأمين الطبي مع إصدار التقارير",
-          "إشعارات SMS تذكير تلقائية للمرضى قبل موعدهم",
-        ],
-      },
-    ],
-
-    serviceDetailModal: {
-      title:            "تفاصيل النظام والتسليمات",
-      deliverablesLabel:"ماذا تستلم بالتفصيل",
-      screenshotsLabel: "لقطات حقيقية من النظام الفعلي",
-      timelineLabel:    "المدة الزمنية المتوقعة",
-      toolsLabel:       "التقنيات المستخدمة",
-      cta:              "اطلب استشارة وعرض تجريبي للنظام",
-      close:            "إغلاق",
+    clients: {
+      title: "شغّالين حالياً مع مراكز طبية في مصر",
+      desc:  "بنحترم خصوصية عملائنا، وبنوفّر مكالمة مرجعية مع عميل حالي للعملاء الجادين وقت العرض التجريبي.",
+      cta:   "اطلب مكالمة مرجعية",
+      wa:    "مرحباً، أود طلب مكالمة مرجعية وعرض تجريبي لأنظمة شغال.",
     },
 
-    processSection: {
-      eyebrow: "إزاي بنشتغل",
-      title:   "طريقة العمل",
-      desc:    "أربع خطوات واضحة من أول فكرتك لحد التسليم والدعم",
-    },
-    process: [
-      { n: "٠١", t: "الاستشارة الأولى",  d: "بنسمع احتياجك الحقيقي، نحلل البيزنس، ونوضح الحل المناسب لمشروعك بالتفصيل." },
-      { n: "٠٢", t: "العرض والخطة",      d: "تصور كامل للنظام، جدول زمني مكتوب، وسعر نهائي ثابت — يُرسل على إيميلك خلال 24 ساعة." },
-      { n: "٠٣", t: "التطوير والتنفيذ",  d: "فريقنا الهندسي يبني النظام بأسبوعية مراجعة معك لحتى تبقى متابع كل خطوة." },
-      { n: "٠٤", t: "التسليم والدعم",    d: "تسليم مُختبَر ومكتمل مع تدريب الفريق ودعم فني حقيقي بعد التشغيل." },
-    ],
-
-    workSection: {
-      eyebrow: "قدرات الأنظمة",
-      title:   "قدرات الأنظمة وحالات الاستخدام",
-      desc:    "أنظمة مبنية لتتحمل بيئة العمل الحقيقية — ليست عروضاً تجريبية.",
-      viewCase: "استعراض قدرات النظام",
-      filters: {
-        all:       "الكل",
-        pos:       "نقاط بيع POS",
-        clinic:    "منصة العيادات",
-        warehouse: "المخازن والعهد",
-      },
-    },
-    portfolio: [
-      {
-        id:      "capability-pos-1",
-        key:     "pos",
-        image:   posCashier,
-        title:   "منظومة نقاط البيع — مصممة لسلاسل التجزئة متعددة الفروع",
-        sub:     "تشغيل سحابي أونلاين لسهولة الصيانة مع استمرارية أوفلاين وتكامل الموازين",
-        client:  "سلاسل التجزئة والسوبر ماركت",
-        year:    "جاهز للتشغيل",
-        challenge: "ربط مركزي بين الفروع بقاعدة بيانات موحدة، مع دعم كتالوج يتجاوز عشرات الآلاف من الأصناف، وتكامل مباشر مع موازين الباركود والطابعات الحرارية وأدراج النقدية.",
-        solution:  "يعمل النظام بشكل أساسي أونلاين لتسهيل الصيانة السريعة وحل أي مشكلات فورياً، وفي حال انقطاع الإنترنت يستمر في العمل أوفلاين دون تعطيل طابور الكاشير، ويزامن جميع العمليات تلقائياً فور عودة الاتصال.",
-        results:   "صيانة ومتابعة فورية أونلاين، مع استمرارية مبيعات بنسبة 100% دون توقف عند انقطاع الإنترنت ومزامنة آلية.",
-        deliverables: ["ربط مركزي وإدارة أونلاين", "استمرار العمل أوفلاين ومزامنة تلقائية", "تكامل موازين الباركود", "دعم طابعات الإيصالات وأدراج النقدية"],
-      },
-      {
-        id:      "capability-clinic-1",
-        key:     "clinic",
-        image:   shotCalendar,
-        title:   "منصة العيادات — مصممة للمجمعات الطبية متعددة التخصصات",
-        sub:     "إدارة عدة عيادات وتخصصات بسجل طبي إلكتروني مشفّر",
-        client:  "المراكز والمجمعات الطبية",
-        year:    "قيد التشغيل الفعلي",
-        challenge: "إدارة عدة عيادات وتخصصات داخل كيان واحد بسجل طبي إلكتروني مشفّر، مع جدولة مواعيد آلية وشاشات انتظار تفاعلية.",
-        solution:  "محاسبة أطباء بثلاثة نماذج (نسبة من الكشف، مرتب ثابت، إيجار كرسي أو عيادة)، ونظام مطالبات تأمين ونسب تحمل.",
-        results:   "تنظيم رقمي كامل للمواعيد والانتظار، وتصفية دقيقة لمستحقات الأطباء بنماذج محاسبية مرنة.",
-        deliverables: ["سجل طبي إلكتروني مشفّر", "جدولة مواعيد وشاشات انتظار", "محاسبة أطباء بنماذج متعددة", "مطالبات تأمين ونسب تحمل"],
-      },
-      {
-        id:      "capability-wh-1",
-        key:     "warehouse",
-        image:   invDashboard,
-        title:   "نظام المخازن والعهد — مصمم لشركات المقاولات والمصانع",
-        sub:     "تتبع إلكتروني للأصول والمعدات بالأرقام التسلسلية وباركود QR",
-        client:  "شركات المقاولات والمصانع",
-        year:    "جاهز للتشغيل",
-        challenge: "تتبع إلكتروني للأصول والمعدات عبر مواقع متعددة بالأرقام التسلسلية وباركود QR، مع دورات صرف واسترجاع رقمية.",
-        solution:  "جرد بالمسح الضوئي من الموبايل، وتقييم مخزون بطرق FIFO و LIFO والمتوسط المرجح، وتتبع دقيق للمسؤوليات والعهد المسلمة.",
-        results:   "رقابة إلكترونية صارمة على حركة الأصول والمعدات وخفض فاقد العهد بالمواقع والمستودعات.",
-        deliverables: ["تتبع السيريال S/N وباركود QR", "جرد بالمسح الضوئي من الموبايل", "دورات صرف واسترجاع رقمية", "تقييم مخزون FIFO / LIFO / متوسط مرجح"],
-      },
-    ],
-
-    caseStudyModal: {
-      title:            "تفاصيل قدرات النظام",
-      clientLabel:      "القطاع المستهدف",
-      yearLabel:        "حالة النظام",
-      challengeLabel:   "نطاق الاستخدام والتحدي التشغيلي",
-      solutionLabel:    "الحل الهندسي من شغال",
-      resultsLabel:     "القيمة المضافة والأثر",
-      deliverablesLabel:"القدرات والميزات المشمولة",
-      cta:              "اطلب استشارة وعرض تجريبي للنظام",
-      close:            "إغلاق",
-    },
-
-    testimonialsSection: {
-      eyebrow: "شركاء النجاح والتشغيل",
-      title:   "عملاؤنا الحاليون",
-      text:    "نعمل حالياً مع مراكز طبية في مصر لتشغيل منظومة إدارة العيادات. نحترم خصوصية عملائنا، ونوفر مرجعية مباشرة (Reference Call) للعملاء الجادين عند طلبها في مرحلة العرض التجريبي.",
-      cta:     "اطلب مكالمة مرجعية وعرضاً تجريبياً",
-      ctaWhatsapp: "تواصل عبر واتساب لطلب المرجعية",
-    },
-    testimonials: [],
-
-    faqSection: {
+    faq: {
       eyebrow: "أسئلة شائعة",
-      title:   "محتاج تعرف حاجة؟",
+      title:   "عندك سؤال؟",
+      desc:    "لو مش لاقي إجابتك، كلمنا واتساب ونرد عليك بسرعة.",
+      ask:     "اسأل على واتساب",
+      items: [
+        { q: "النظام بيشتغل من غير إنترنت؟",       a: "أيوه. النظام أونلاين أساساً عشان الصيانة والتحديثات تبقى فورية، ولو النت فصل بيكمّل أوفلاين من غير ما يوقف الكاشير أو الحجوزات، وبيزامن كل البيانات أول ما الاتصال يرجع." },
+        { q: "التنفيذ بياخد وقت قد إيه؟",           a: "الأنظمة الأساسية من ٢١ لـ ٤٥ يوم عمل، والمشاريع الأكبر من ٦٠ لـ ٩٠ يوم. بتاخد جدول زمني مكتوب قبل ما نبدأ." },
+        { q: "ينفع نعدّل النظام بعد التسليم؟",       a: "أكيد. الأنظمة متصممة إنها تكبر معاك، وأي تعديل جديد بيتسعّر بشكل منفصل وواضح." },
+        { q: "فيه تدريب على النظام؟",                a: "أيوه — جلسات تدريب لفريقك ومديرينك، مع فيديوهات شرح ودليل استخدام مكتوب." },
+        { q: "بيدعم أكتر من فرع؟",                   a: "أيوه، تعدد الفروع متصمم من البداية مع تزامن لحظي للبيانات والأسعار والمخزون." },
+        { q: "أتابع مشروعي إزاي وقت التنفيذ؟",       a: "بتوصلك دعوة للوحة مشروع خاصة بيك، تشوف فيها كل مرحلة وتعلّق وتوافق قبل ما نكمّل." },
+      ],
     },
-    faqSearch: {
-      placeholder: "ابحث في الأسئلة (مثل: سعر، مواعيد، دعم...)",
-      noResults:   "لم نجد أسئلة تطابق بحثك — يسعدنا الإجابة مباشرة.",
-    },
-    faqs: [
-      { q: "هل الأنظمة بتشتغل بدون إنترنت؟",         a: "أنظمتنا تعمل أونلاين (Online) بشكل أساسي لأن التشغيل السحابي هو الأفضل للصيانة السريعة وحل أي مشكلات برمجية وتطبيق التحديثات الفورية عن بُعد. وإذا حدث أي انقطاع للإنترنت، يعمل النظام تلقائياً وبشكل كامل أوفلاين (Offline) دون أي تعطيل لطوابير الكاشير أو العمليات، ويقوم بمزامنة كافة البيانات تلقائياً بمجرد عودة الاتصال." },
-      { q: "ما هي مدة تطوير النظام؟",                  a: "بتختلف حسب حجم المشروع — الأنظمة الأساسية بتاخد من ٢١ لـ ٤٥ يوم عمل، والمشاريع الكبيرة من ٦٠ لـ ٩٠ يوم. هتاخد جدول زمني مكتوب من البداية." },
-      { q: "هل ممكن تعديل النظام بعد التسليم؟",       a: "أكيد — كل أنظمتنا مصممة عشان تتطور. بنوفر حزم دعم وتحديثات دورية، وأي تعديلات جديدة بتُقدَّر بشكل منفصل وشفاف." },
-      { q: "هل فيه تدريب على استخدام النظام؟",         a: "أيوه، التسليم بيشمل جلسات تدريب كاملة للفريق والمديرين، مع فيديوهات توضيحية وكتيب استخدام مكتوب." },
-      { q: "هل الأنظمة بتتزامن بين أكتر من فرع؟",    a: "أيوه — بنصمم من البداية دعم متعدد الفروع مع تزامن لحظي للبيانات والأسعار والمخزون بين كل الفروع." },
-      { q: "كيف أتابع مشروعي أثناء التطوير؟",          a: "بتوصلك دعوة لـ Project Dashboard مخصص بتشوف فيه كل مرحلة وتقدر تعلق وتوافق على كل خطوة قبل ما نكمل." },
-    ],
 
     contact: {
-      eyebrow:           "ابدأ مشروعك",
-      title:             "محتاج نظام مخصص؟",
-      desc:              "احكيلنا عن مشروعك وفريقنا هيبعتلك تحليل مبدئي وعرض سعر تقريبي على إيميلك خلال يوم عمل واحد.",
-      location:          "القاهرة، مصر",
-      social:            ["واتساب: 01033844561", "البريد الإلكتروني الرسمي"],
-      namePh:            "الاسم بالكامل",
-      contactPh:         "البريد الإلكتروني أو رقم الهاتف",
-      servicePh:         "النظام اللي محتاجه",
-      detailsPh:         "وصف مختصر للمشروع واحتياجاتك",
-      submit:            "إرسال الطلب (سيصلك الرد على الإيميل)",
-      sent:              "تم الإرسال! سنتواصل معك خلال ٢٤ ساعة عمل",
-      sendAnother:       "إرسال طلب آخر",
-      selectPlaceholder: "اختر النظام...",
-      sending:           "جاري الإرسال...",
-      serviceOptions:    ["نظام نقاط البيع (POS)", "نظام إدارة المخازن", "نظام إدارة العيادات", "نظام مخصص آخر"],
+      eyebrow: "ابدأ مشروعك",
+      title:   "احكيلنا عن شغلك",
+      desc:    "املا البيانات وهتتفتح محادثة واتساب جاهزة بطلبك — أو كلمنا مباشرة.",
+      name:    "الاسم",
+      namePh:  "اسمك بالكامل",
+      phone:   "رقم الموبايل أو الإيميل",
+      phonePh: "عشان نرد عليك",
+      system:  "النظام",
+      systemOptions: ["نقاط البيع", "إدارة العيادات", "المخازن والعهد", "نظام مخصص آخر"],
+      details:   "تفاصيل",
+      detailsPh: "عدد الفروع، طبيعة الشغل، أي حاجة مهمة…",
+      submit:  "ابعت على واتساب",
+      note:    "هيتفتح واتساب برسالة جاهزة — مفيش حاجة بتتبعت غير لما تضغط إرسال هناك.",
+      waIntro: "مرحباً شغال، أود طلب عرض تجريبي.",
+      waName: "الاسم", waContact: "التواصل", waSystem: "النظام", waDetails: "التفاصيل",
+      emailLabel: "الإيميل",
+      waLabel:    "واتساب",
+      location:   "القاهرة، مصر",
+      copy:       "نسخ",
     },
 
     footer: {
-      tagline: "استوديو تقني متخصص في بناء الأنظمة الرقمية المخصصة للشركات والمنشآت.",
-      links:   "روابط",
-      services:"أنظمتنا",
-      contact: "تواصل",
-      rights:  "© شغال — كل الحقوق محفوظة",
+      tagline: "أنظمة مخصصة لنقاط البيع والعيادات والمخازن — مبنية عشان تفضل شغّالة.",
+      rights:  "© شغال. كل الحقوق محفوظة.",
     },
 
-    float: {
-      top:      "ارجع لفوق",
-      whatsapp: "تواصل واتساب",
-    },
-    toast: {
-      emailCopied:   "تم نسخ البريد الإلكتروني إلى الحافظة!",
-      formSubmitted: "تم إرسال طلبك! سنتواصل معك خلال ٢٤ ساعة عمل.",
-    },
-    langSwitch: "EN",
+    toast: { emailCopied: "تم نسخ الإيميل" },
+    gallery: { close: "إغلاق", prev: "السابق", next: "التالي" },
+    waFloat: "مرحباً، أود الاستفسار عن أنظمة شغال.",
   },
 
   en: {
     dir: "ltr",
-    font: "'Inter', system-ui, sans-serif",
-    displayFont: "'Inter', system-ui, sans-serif",
+    langSwitch: "عربي",
+    brandAlt: "Shaghal",
 
     nav: {
-      home:         "Home",
-      about:        "About",
-      services:     "Systems",
-      process:      "Process",
-      work:         "Capabilities",
-      testimonials: "Clients",
-      faq:          "FAQ",
+      systems: "Systems",
+      why:     "Why Shaghal",
+      process: "Process",
+      faq:     "FAQ",
+      contact: "Contact",
     },
-
-    cta:  "Get a Quote",
-    menu: "Menu",
+    cta: "Book a demo",
+    themeLight: "Light",
+    themeDark:  "Dark",
 
     hero: {
-      eyebrow:     "Specialized Digital Systems Studio",
-      title:       "We build the systems that power your business",
-      titleAccent: "with precision & intelligence",
-      desc:        "We design and deliver custom software systems for businesses — from point-of-sale and warehouse management to clinic systems — all under one technical roof.",
-      explore:     "Explore Our Systems",
-      portfolio:   "System Capabilities & Use Cases",
+      eyebrow: "POS · Clinics · Inventory",
+      title:   "Software that works,",
+      accent:  "so your business never stops.",
+      desc:    "We design and build custom systems for shops, clinics and warehouses. They run online, keep working offline when the internet drops, and our team stays with you after launch.",
+      primary:   "Book a demo",
+      secondary: "See the systems",
+      points: ["Works offline", "Multi-branch sync", "24/7 support"],
+      tabs:   { pos: "Point of sale", clinic: "Clinics", warehouse: "Inventory" },
     },
 
-    stats: [
+    sectors: {
+      title: "Built for",
+      items: ["Supermarkets & retail", "Clinics & medical centers", "Warehouses", "Contractors & factories"],
+    },
+
+    systemsSection: {
+      eyebrow: "Systems",
+      title:   "Three systems, fitted to how you work",
+      desc:    "Each one is tailored to your real workflow — not off-the-shelf software you have to bend around.",
+      forLabel:      "Built for",
+      timelineLabel: "Delivery",
+      viewScreens:   "View screens",
+      requestDemo:   "Request a demo",
+    },
+
+    systems: [
       {
-        n: "100%",
-        l: "Online Operations & Offline Resilience",
-        desc: "Engineered to run online for rapid maintenance and instant issue resolution, switching seamlessly to offline if internet drops and auto-syncing upon reconnection.",
+        key:      "pos",
+        title:    "Point of Sale",
+        tagline:  "Fast checkout, live profit reports.",
+        desc:     "For supermarkets and retail: barcode checkout, live stock levels, and every branch in one dashboard.",
+        audience: "Supermarkets and retail chains",
+        timeline: "21–45 business days",
+        features: [
+          "Fast cashier screen with thermal printer, scanner and scale support",
+          "Multi-branch sync for prices and stock",
+          "Cashier and manager permissions",
+          "Daily and monthly sales & profit reports",
+        ],
       },
       {
-        n: "24/7",
-        l: "Direct Technical Support",
-        desc: "Dedicated in-house engineers ensuring fast response and operational reliability.",
+        key:      "clinic",
+        title:    "Clinic Management",
+        tagline:  "From booking to prescription to invoice.",
+        desc:     "For clinics and polyclinics: appointments, digital patient files, e-prescriptions, and flexible doctor payroll.",
+        audience: "Single clinics and multi-specialty centers",
+        timeline: "21–45 business days",
+        features: [
+          "Booking and interactive calendar with SMS reminders",
+          "Encrypted digital medical record with prescriptions",
+          "Doctor payroll: revenue share, fixed salary, or room rental",
+          "Billing, insurance and financial reports",
+        ],
       },
       {
-        n: "Isolated",
-        l: "Data Security & Privacy",
-        desc: "Dedicated databases with end-to-end encryption and enterprise confidentiality.",
-      },
-      {
-        n: "Live",
-        l: "Multi-Branch Cloud Auto-Sync",
-        desc: "Instant automated cloud reconciliation of sales, inventory, and records upon reconnection.",
+        key:      "warehouse",
+        title:    "Inventory & Custody",
+        tagline:  "Know where every item is — and who has it.",
+        desc:     "For warehouses, contractors and factories: track assets by serial number and barcode, with a clear approval flow for issuing and returning custody.",
+        audience: "Warehouses, contractors and factories",
+        timeline: "30–60 business days",
+        features: [
+          "Dual-approval custody issue and return (supervisor + manager)",
+          "Serial-number and QR tracking from a phone camera",
+          "Low-stock alerts and Excel import/export",
+          "FIFO / LIFO / weighted-average valuation",
+        ],
       },
     ],
 
-    trustSection: {
-      eyebrow: "Supported Sectors",
-      title:   "Sectors & Businesses Powered by Our Systems",
-    },
-
-    about: {
-      eyebrow:     "Who We Are",
-      title:       "One technical studio, one specialty:",
-      titleAccent: "building digital systems",
-      p1:          "We started as a team of software engineers specializing in custom business systems. We noticed many businesses struggling with outdated off-the-shelf software that never quite fits their real workflow.",
-      p2:          "We built a company exclusively focused on designing and delivering tailor-made digital systems — built to your exact specifications, with real post-delivery support.",
-      imageAlt:    "Shaghal team developing a custom system",
-      badgeTitle:  "In-House Engineering Team",
-      badgeSub:    "Specialized engineers with zero middlemen",
-      highlights: [
-        ["In-house engineering team", "Every project is built by dedicated in-house engineers — no outsourcing, no middlemen."],
-        ["Real-time tracking & continuous updates", "From kick-off to post-delivery, track every milestone in your dedicated project dashboard."],
-        ["Transparent pricing, fixed scope", "No surprises on price or timeline — you get a detailed written proposal before we start."],
+    why: {
+      eyebrow: "Why Shaghal",
+      title:   "Built to keep working",
+      items: [
+        { icon: "offline",  t: "Keeps going offline",   d: "Runs online for instant maintenance; if the connection drops it carries on offline and syncs everything when it's back." },
+        { icon: "branches", t: "Every branch, one view", d: "Sales, stock and prices sync automatically across branches." },
+        { icon: "security", t: "Your data, isolated",    d: "A separate database per business, with encryption for sensitive records like patient data." },
+        { icon: "support",  t: "Real 24/7 support",      d: "An in-house engineering team — no middlemen — plus 12 months of support and updates." },
       ],
     },
 
-    servicesSection: {
-      eyebrow: "Our Systems",
-      title:   "Three flagship systems",
-      desc:    "Custom software solutions built for the most demanding business sectors",
-      learnMore: "Learn More",
+    process: {
+      eyebrow: "Process",
+      title:   "From first call to go-live",
+      steps: [
+        { t: "We listen",       d: "A call to understand your business and what you really need." },
+        { t: "Written proposal", d: "Plan, timeline and a fixed price — within 24 hours." },
+        { t: "Build together",  d: "Weekly reviews, with every milestone in your project dashboard." },
+        { t: "Launch & support", d: "Tested delivery, team training, and support after go-live." },
+      ],
     },
 
-    services: [
-      {
-        key:       "pos",
-        label:     "01",
-        title:     "Point of Sale System",
-        sub:       "POS for Supermarkets & Retail Stores",
-        desc:      "Full-featured POS system built for supermarkets and retail chains — real-time inventory, barcode scanning, electronic invoicing, multi-branch sync, cashier permissions, and daily P&L reports.",
-        tags:      ["Point of Sale", "Barcode", "Sales Reports", "Branch Management"],
-        timeline:  "21 - 45 Business Days",
-        tools:     ["React", "Node.js", "PostgreSQL", "Electron", "Thermal Printer SDK"],
-        screenshots: POS_SCREENSHOTS,
-        deliverables: [
-          "Fast cashier UI compatible with thermal printers & barcode scanners",
-          "Online architecture for rapid maintenance with seamless offline continuity & auto-sync",
-          "Admin dashboard with automated daily & monthly sales reports",
-          "Multi-branch real-time inventory and data sync",
-          "Full cashier and manager permission management",
-          "12 months support & updates post-delivery",
-        ],
-      },
-      {
-        key:       "warehouse",
-        label:     "02",
-        title:     "Custody & Inventory System",
-        sub:       "Enterprise Custody & Inventory (v2.5)",
-        desc:      "Enterprise cloud platform for warehouse, fixed assets, and custody management — dual-approval workflow for issuance and returns, serial number (S/N) compass tracking, smart barcode scanning, safety stock alerts, and Excel import/export.",
-        tags:      ["Custody & Warehouse", "Fixed Assets", "Serial S/N Tracker", "Dual Approval", "Smart Barcode", "Safety Stock Alerts"],
-        timeline:  "30 - 60 Business Days",
-        tools:     ["React", "Node.js", "PostgreSQL", "Barcode SDK", "Excel XLSX Engine", "RBAC Security"],
-        screenshots: WAREHOUSE_SCREENSHOTS,
-        deliverables: [
-          "Interactive live dashboard tracking total custody asset valuation and real-time low-stock alerts",
-          "Cloud-connected architecture for real-time remote maintenance with local offline support",
-          "Dual-approval workflow for custody issuance and return requests (Supervisor & Manager) with reason logging",
-          "Asset Compass for historical audit and tracking by unique Serial Numbers (S/N)",
-          "Product & SKU catalog with support for fixed assets, purchases, and Excel XLSX import/export",
-          "Fast barcode & QR code scanner integration (handheld readers & camera)",
-          "Multi-level Role-Based Access Control (RBAC) and enterprise-grade security",
-        ],
-      },
-      {
-        key:       "clinic",
-        label:     "03",
-        title:     "Clinic Management System",
-        sub:       "Medical Center & Clinic Platform",
-        desc:      "Complete clinic platform for medical centers — online appointment booking, digital patient files, doctor scheduling, billing & insurance, and automated SMS reminders.",
-        tags:      ["Appointment Booking", "Patient Files", "Doctor Scheduling", "Medical Billing"],
-        timeline:  "21 - 45 Business Days",
-        tools:     ["React", "Node.js", "PostgreSQL", "Twilio SMS", "PDF Generator"],
-        screenshots: CLINIC_SCREENSHOTS,
-        deliverables: [
-          "Online booking system with patient app (Android/iOS)",
-          "Online cloud operation for instant remote support & updates with uninterrupted offline resilience",
-          "Digital patient files with full medical history & prescriptions",
-          "Doctor dashboard with upcoming appointment alerts",
-          "Billing & insurance module with report generation",
-          "Automated SMS reminders for upcoming appointments",
-        ],
-      },
-    ],
-
-    serviceDetailModal: {
-      title:            "System Details & Deliverables",
-      deliverablesLabel:"What You Get",
-      screenshotsLabel: "Real screens from the live system",
-      timelineLabel:    "Estimated Delivery Time",
-      toolsLabel:       "Technologies Used",
-      cta:              "Request a Consultation & Live Demo",
-      close:            "Close",
+    clients: {
+      title: "Running today in medical centers across Egypt",
+      desc:  "We respect our clients' privacy, and we arrange a reference call with a current client for serious prospects during the demo.",
+      cta:   "Request a reference call",
+      wa:    "Hello, I'd like to request a reference call and a demo of Shaghal's systems.",
     },
 
-    processSection: {
-      eyebrow: "How We Work",
-      title:   "Our Process",
-      desc:    "Four clear steps from your idea to delivery and support",
-    },
-    process: [
-      { n: "01", t: "Discovery Call",     d: "We listen to your real needs, analyze your workflow, and clarify the best technical solution for your project." },
-      { n: "02", t: "Proposal & Plan",    d: "A full system concept, clear written timeline, and fixed final price — sent to your email within 24 hours." },
-      { n: "03", t: "Build & Deliver",    d: "Our engineering team builds the system with weekly review sessions so you're in the loop every step of the way." },
-      { n: "04", t: "Launch & Support",   d: "Fully tested deployment, team training, and real post-launch technical support." },
-    ],
-
-    workSection: {
-      eyebrow: "System Capabilities",
-      title:   "System Capabilities & Use Cases",
-      desc:    "Systems engineered for real-world production environments — not demo prototypes.",
-      viewCase: "Explore System Capabilities",
-      filters: {
-        all:       "All",
-        pos:       "POS Systems",
-        clinic:    "Clinic Platform",
-        warehouse: "Custody & Inventory",
-      },
-    },
-    portfolio: [
-      {
-        id:      "capability-pos-1",
-        key:     "pos",
-        image:   posCashier,
-        title:   "POS System — Engineered for Multi-Branch Retail Chains",
-        sub:     "Online cloud architecture for seamless maintenance with offline resilience & scale integration",
-        client:  "Supermarket & Retail Chains",
-        year:    "Production Ready",
-        challenge: "Centralized multi-branch synchronization with a unified database, supporting catalogs exceeding tens of thousands of SKUs, with direct integration for barcode scales, thermal receipt printers, and cash drawers.",
-        solution:  "The system operates primarily online to enable rapid maintenance, swift troubleshooting, and real-time updates. If the internet goes down, it continues working offline seamlessly with zero disruption to cashiers, and automatically synchronizes all data as soon as connectivity is restored.",
-        results:   "100% operational uptime with fast remote maintenance, zero checkout disruption during outages, and automatic cloud sync.",
-        deliverables: ["Centralized Multi-Branch Cloud", "Offline Continuity & Auto-Sync", "Barcode Scales Integration", "Receipt Printers & Cash Drawer Drivers"],
-      },
-      {
-        id:      "capability-clinic-1",
-        key:     "clinic",
-        image:   shotCalendar,
-        title:   "Clinic Platform — Built for Multi-Specialty Medical Centers",
-        sub:     "Multi-specialty clinic operations with encrypted digital EMR and flexible doctor payroll",
-        client:  "Medical Centers & Polyclinics",
-        year:    "Active in Production",
-        challenge: "Operating multiple clinics and specialties under a single facility with an encrypted electronic medical record (EMR), automated appointment scheduling, and interactive waiting room displays.",
-        solution:  "Doctor accounting with 3 flexible compensation models (visit revenue share, fixed salary, clinic/chair rental), plus insurance claims and deductible management.",
-        results:   "Seamless digital patient journey and exact automated doctor payroll settlements.",
-        deliverables: ["Encrypted Digital EMR", "Automated Scheduling & Waitlist", "3-Model Doctor Compensation", "Insurance Claims & Co-Pay Ratios"],
-      },
-      {
-        id:      "capability-wh-1",
-        key:     "warehouse",
-        image:   invDashboard,
-        title:   "Custody & Inventory System — Built for Contractors & Factories",
-        sub:     "Traceable asset & equipment management with serial numbers and mobile QR scanning",
-        client:  "Contracting & Manufacturing Companies",
-        year:    "Production Ready",
-        challenge: "Electronic tracking of heavy machinery, equipment, and custody assets across multiple sites via unique serial numbers (S/N) and QR codes, with digital issue/return approval workflows.",
-        solution:  "Mobile camera barcode/QR stocktaking, valuation via FIFO, LIFO, and weighted average, and clear employee custody logs.",
-        results:   "Full chain of custody, elimination of lost equipment on job sites, and real-time asset valuation.",
-        deliverables: ["Serial Number (S/N) & QR Tracking", "Mobile Barcode Stocktaking", "Digital Custody Issue & Return", "FIFO / LIFO / Weighted Average Valuation"],
-      },
-    ],
-
-    caseStudyModal: {
-      title:            "System Capabilities & Specifications",
-      clientLabel:      "Target Industry",
-      yearLabel:        "System Status",
-      challengeLabel:   "Operational Scope & Production Demands",
-      solutionLabel:    "Shaghal Engineering Solution",
-      resultsLabel:     "Value & Verified Capability",
-      deliverablesLabel:"Included Features & Capabilities",
-      cta:              "Request a Consultation & Live Demo",
-      close:            "Close",
-    },
-
-    testimonialsSection: {
-      eyebrow: "Our Partners & Operations",
-      title:   "Our Current Clients",
-      text:    "We currently partner with medical centers in Egypt running our clinic management system. We strictly respect our clients' privacy and confidentiality, and provide direct Reference Calls for serious prospective clients upon request during the live demonstration phase.",
-      cta:     "Request a Reference Call & Demo",
-      ctaWhatsapp: "Chat on WhatsApp for a Reference Call",
-    },
-    testimonials: [],
-
-    faqSection: {
+    faq: {
       eyebrow: "FAQ",
       title:   "Got a question?",
+      desc:    "Can't find your answer? Message us on WhatsApp and we'll reply quickly.",
+      ask:     "Ask on WhatsApp",
+      items: [
+        { q: "Does it work without internet?",          a: "Yes. It runs online so maintenance and updates are instant, and if the connection drops it keeps working offline — no stalled checkout or bookings — then syncs everything once you're back online." },
+        { q: "How long does it take?",                  a: "Core systems take 21–45 business days; larger projects 60–90. You get a written schedule before we start." },
+        { q: "Can it be changed after delivery?",       a: "Of course. The systems are built to grow with you, and new changes are scoped and priced separately and clearly." },
+        { q: "Is training included?",                   a: "Yes — training sessions for your staff and managers, plus walkthrough videos and a written guide." },
+        { q: "Does it support multiple branches?",      a: "Yes. Multi-branch is designed in from day one, with live sync of data, prices and stock." },
+        { q: "How do I follow progress?",               a: "You get an invite to your own project dashboard to see every phase, comment, and approve before we move on." },
+      ],
     },
-    faqSearch: {
-      placeholder: "Search FAQs (e.g. price, timeline, support...)",
-      noResults:   "No matching questions — feel free to contact us directly.",
-    },
-    faqs: [
-      { q: "Do the systems work without internet?",          a: "Our systems run primarily online because cloud operation is optimal for fast maintenance, remote troubleshooting, and real-time updates. If the internet connection drops, the system seamlessly operates offline without disrupting any operations, and automatically syncs all data as soon as the connection is back online." },
-      { q: "How long does development take?",                a: "Depends on project scope. Standard systems take 21-45 business days; larger projects take 60-90. You'll receive a written schedule before we start." },
-      { q: "Can the system be customized after delivery?",   a: "Absolutely — all our systems are designed to evolve. We offer support & update packages, and any new features are scoped and priced transparently." },
-      { q: "Is there training included?",                    a: "Yes — delivery includes full training sessions for staff and management, plus tutorial videos and a written user guide." },
-      { q: "Do the systems support multiple branches?",      a: "Yes — multi-branch support with real-time sync for data, pricing, and inventory across all branches is built in by design." },
-      { q: "How do I track my project during development?",  a: "You'll receive an invite to a dedicated Project Dashboard where you can track every phase, comment, and approve each milestone before we proceed." },
-    ],
 
     contact: {
-      eyebrow:           "Start Your Project",
-      title:             "Need a custom system?",
-      desc:              "Tell us about your project and our team will send you an initial analysis and pricing estimate to your email within one business day.",
-      location:          "Cairo, Egypt",
-      social:            ["WhatsApp: 01033844561", "Official Email"],
-      namePh:            "Full name",
-      contactPh:         "Email or phone number",
-      servicePh:         "System you need",
-      detailsPh:         "Brief project description and requirements",
-      submit:            "Send Request (Email response)",
-      sent:              "Sent! We'll reply to your email within 24 business hours.",
-      sendAnother:       "Send Another Request",
-      selectPlaceholder: "Select system...",
-      sending:           "Sending...",
-      serviceOptions:    ["Point of Sale (POS) System", "Warehouse Management System", "Clinic Management System", "Custom Software System"],
+      eyebrow: "Start your project",
+      title:   "Tell us about your business",
+      desc:    "Fill this in and a WhatsApp chat opens with your request ready — or reach us directly.",
+      name:    "Name",
+      namePh:  "Your full name",
+      phone:   "Phone or email",
+      phonePh: "So we can reply",
+      system:  "System",
+      systemOptions: ["Point of sale", "Clinic management", "Inventory & custody", "Something custom"],
+      details:   "Details",
+      detailsPh: "Number of branches, type of business, anything important…",
+      submit:  "Send on WhatsApp",
+      note:    "WhatsApp opens with a ready message — nothing is sent until you press send there.",
+      waIntro: "Hello Shaghal, I'd like to request a demo.",
+      waName: "Name", waContact: "Contact", waSystem: "System", waDetails: "Details",
+      emailLabel: "Email",
+      waLabel:    "WhatsApp",
+      location:   "Cairo, Egypt",
+      copy:       "Copy",
     },
 
     footer: {
-      tagline: "Specialized digital systems studio — custom software built for businesses and organizations.",
-      links:   "Links",
-      services:"Systems",
-      contact: "Contact",
-      rights:  "© Shaghal — All rights reserved",
+      tagline: "Custom systems for retail, clinics and warehouses — built to keep working.",
+      rights:  "© Shaghal. All rights reserved.",
     },
 
-    float: {
-      top:      "Back to top",
-      whatsapp: "WhatsApp",
-    },
-    toast: {
-      emailCopied:   "Email copied to clipboard!",
-      formSubmitted: "Request submitted! We'll reply within 24 business hours.",
-    },
-    langSwitch: "عربي",
+    toast: { emailCopied: "Email copied" },
+    gallery: { close: "Close", prev: "Previous", next: "Next" },
+    waFloat: "Hello, I'd like to ask about Shaghal's systems.",
   },
 };

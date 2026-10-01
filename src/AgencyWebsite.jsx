@@ -1,2345 +1,860 @@
-import React, {
-  useState, useEffect, useMemo, useRef, useCallback,
-} from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  motion, AnimatePresence, useScroll, useTransform, useSpring,
-  useInView, useMotionValue, useAnimationFrame, useReducedMotion,
-} from "framer-motion";
-import {
-  Sparkles, ArrowLeft, ArrowRight, CheckCircle2,
-  Code2, Monitor, Warehouse, Stethoscope,
-  Mail, MapPin, Search, Plus, Globe, Sun, Moon, Menu, X,
-  Star, Check, Copy, Clock, Wrench, ShieldCheck, Users,
-  Compass, FileCheck2, Cpu, MonitorCheck, ChevronRight, ChevronLeft,
-  Database, Wifi, BarChart3, Palette,
+  ArrowLeft, ArrowRight, Check, Plus, Mail, MapPin, Copy, Sun, Moon, Menu, X,
+  ChevronLeft, ChevronRight, Clock, Users, Images, WifiOff, Network, ShieldCheck,
+  Headset, CheckCircle2, ScanBarcode, Stethoscope, Boxes,
 } from "lucide-react";
 
-import {
-  EMAIL, PHONE, WHATSAPP_URL, TRUST_LOGOS, COPY,
-  TESTIMONIAL_AVATARS, SERVICE_IMAGES, PORTFOLIO_IMAGES, ABOUT_IMAGE,
-  CLINIC_SCREENSHOTS, POS_SCREENSHOTS,
-} from "./i18n.js";
+import { EMAIL, PHONE, whatsappLink, SCREENSHOTS, COPY } from "./i18n.js";
 
-// ── Motion Variants ──────────────────────────────────────────────────────────
-const FI_UP = {
-  hidden:  { opacity: 0, y: 50, scale: 0.97 },
-  visible: { opacity: 1, y: 0,  scale: 1,
-    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
-};
+const EASE = [0.16, 1, 0.3, 1];
+const SYSTEM_ICONS = { pos: ScanBarcode, clinic: Stethoscope, warehouse: Boxes };
+const WHY_ICONS = { offline: WifiOff, branches: Network, security: ShieldCheck, support: Headset };
 
-const STAGGER = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1,
-    transition: { staggerChildren: 0.13, delayChildren: 0.05 } },
-};
-
-const SLIDE_LEFT  = {
-  hidden:  { opacity: 0, x:  60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
-};
-const SLIDE_RIGHT = {
-  hidden:  { opacity: 0, x: -60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
-};
-
-// ── Count-Up Hook (Safe & Smart) ─────────────────────────────────────────────
-function useCountUp(target, duration = 1.8) {
-  const targetStr = String(target || "").trim();
-  const [count, setCount] = useState(() => targetStr);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-
-  useEffect(() => {
-    if (!inView) return;
-    const str = String(target || "").trim();
-
-    // If it contains a slash (like 24/7) or no digits at all, NEVER animate it — keep exact string
-    if (str.includes("/") || !/[0-9٠-٩]/.test(str)) {
-      setCount(str);
-      return;
-    }
-
-    const isArabic = /[٠-٩]/.test(str);
-    const rawDigits = str.replace(/[^0-9٠-٩.]/g, "");
-    if (!rawDigits) {
-      setCount(str);
-      return;
-    }
-
-    // Convert Arabic digits to standard for calculation
-    const normalized = rawDigits.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
-    const numeric = parseFloat(normalized);
-    if (isNaN(numeric)) {
-      setCount(str);
-      return;
-    }
-
-    // Extract non-digit prefix and suffix
-    const firstDigitIdx = str.search(/[0-9٠-٩]/);
-    const prefix = firstDigitIdx > 0 ? str.slice(0, firstDigitIdx) : "";
-    const lastDigitIdx = str.split("").reduce((acc, ch, idx) => /[0-9٠-٩]/.test(ch) ? idx : acc, -1);
-    const suffix = lastDigitIdx >= 0 && lastDigitIdx < str.length - 1 ? str.slice(lastDigitIdx + 1) : "";
-
-    const arDigit = n => String(n).replace(/[0-9]/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
-
-    let start = null;
-    let animId = null;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const prog = Math.min((ts - start) / (duration * 1000), 1);
-      const ease = 1 - Math.pow(1 - prog, 3);
-      const val = Math.floor(ease * numeric);
-      const formatted = isArabic ? arDigit(val) : val;
-      setCount(`${prefix}${formatted}${suffix}`);
-      if (prog < 1) {
-        animId = requestAnimationFrame(step);
-      }
-    };
-    animId = requestAnimationFrame(step);
-    return () => {
-      if (animId) cancelAnimationFrame(animId);
-    };
-  }, [inView, target, duration]);
-
-  return [ref, count];
-}
-
-// ── Smart Architectural Feature Card ──────────────────────────────────────────
-function StatCard({ stat, idx = 0 }) {
-  const n = typeof stat === "object" ? stat.n : stat;
-  const l = typeof stat === "object" ? stat.l : "";
-  const desc = typeof stat === "object" ? stat.desc : "";
-  const [ref, count] = useCountUp(n);
-
-  const icons = [Database, Clock, ShieldCheck, Cpu];
-  const Icon = icons[idx % icons.length];
-  const is247 = String(n).includes("24") || String(n).includes("٢٤");
-
+// ── Brand ────────────────────────────────────────────────────────────────────
+// Horizontal lockup built from the original logo artwork: bars mark + wordmark.
+function Lockup({ lang, className = "" }) {
+  const isAr = lang === "ar";
   return (
-    <div
-      ref={ref}
-      className="stat-card relative text-center p-6 sm:p-8 rounded-3xl bg-[var(--bg)] dark:bg-slate-900/90
-        border border-[var(--border)] dark:border-slate-800 hover:border-[var(--brand)]/50 transition-all
-        group hover:shadow-xl flex flex-col justify-between h-full"
-    >
-      <div className="flex flex-col items-center">
-        {/* Top Icon Badge */}
-        <div className="w-12 h-12 rounded-2xl bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
-          <Icon className="w-6 h-6" />
-        </div>
-
-        {/* Primary Metric / Badge */}
-        <div className="flex items-center justify-center gap-1.5 mb-2">
-          {is247 && (
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-          )}
-          <span className="font-heading font-black text-3xl sm:text-4xl text-[var(--brand)] tracking-tight">
-            {count}
-          </span>
-        </div>
-
-        {/* Label */}
-        <h3 className="font-heading font-bold text-sm sm:text-base text-[var(--ink)] dark:text-white mb-2">
-          {l}
-        </h3>
-
-        {/* Supporting description */}
-        {desc && (
-          <p className="text-xs text-[var(--muted)] dark:text-slate-400 leading-relaxed max-w-[220px]">
-            {desc}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Interactive Spotlight Card (Mercury SaaS dynamic card) ─────────────────
-function SpotlightCard({ children, className = "", onClick, ...props }) {
-  const handleMouseMove = useCallback((e) => {
-    // Skip on touch/mobile devices to eliminate scroll layout thrashing
-    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    e.currentTarget.style.setProperty("--mouse-x", `${(e.clientX - rect.left).toFixed(1)}px`);
-    e.currentTarget.style.setProperty("--mouse-y", `${(e.clientY - rect.top).toFixed(1)}px`);
-  }, []);
-
-  return (
-    <motion.div
-      onMouseMove={handleMouseMove}
-      onClick={onClick}
-      className={`mercury-card relative overflow-hidden group ${className}`}
-      {...props}
-    >
-      <div
-        className="pointer-events-none absolute -inset-px rounded-[28px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hidden sm:block"
-        style={{
-          background: "radial-gradient(600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px), rgba(var(--brand-rgb), 0.12), transparent 65%)",
-          willChange: "opacity",
-        }}
+    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+      <img src="/brand/shaghal-mark.svg" alt="" className="h-10 w-auto" draggable={false} />
+      <img
+        src={isAr ? "/brand/shaghal-word-ar.svg" : "/brand/shaghal-word-en.svg"}
+        alt={isAr ? "شغال" : "Shaghal"}
+        className={isAr ? "h-[22px] w-auto mt-1" : "h-[21px] w-auto mt-0.5"}
+        draggable={false}
       />
-      {children}
-    </motion.div>
+    </span>
   );
 }
 
-// ── Elegant Ambient Scan Light & Constellation Dots (Ultra-Light GPU Accelerated) ───
-function ElegantTechBackground({ darkMode }) {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden" aria-hidden="true">
-      {/* 1. Subtle Cyan / Blue Laser Scan Light Beam (hidden on mobile via CSS) */}
-      <div className="cyber-scan-beam" />
-
-      {/* 2. Ambient Soft Glow Orbs */}
-      <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[340px] sm:w-[600px] md:w-[850px] h-[220px] sm:h-[400px] rounded-full blur-3xl sm:blur-[120px] opacity-25 dark:opacity-35 pointer-events-none"
-        style={{
-          background: darkMode
-            ? "radial-gradient(ellipse at center, rgba(45, 212, 191, 0.25) 0%, rgba(56, 189, 248, 0.15) 50%, transparent 70%)"
-            : "radial-gradient(ellipse at center, rgba(15, 92, 82, 0.12) 0%, rgba(56, 189, 248, 0.08) 50%, transparent 70%)",
-        }}
-      />
-
-      {/* 3. Subtle Constellation Tech Dots (optimized for desktop/tablet; hidden on small mobile to preserve smooth 60fps scrolling) */}
-      <svg className="absolute inset-0 w-full h-full opacity-45 dark:opacity-65 hidden sm:block" xmlns="http://www.w3.org/2000/svg">
-        <line x1="12%" y1="18%" x2="22%" y2="28%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
-        <line x1="22%" y1="28%" x2="16%" y2="44%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
-        <line x1="82%" y1="15%" x2="90%" y2="30%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
-        <line x1="90%" y1="30%" x2="78%" y2="42%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
-        <line x1="78%" y1="75%" x2="88%" y2="85%" stroke="rgba(56, 189, 248, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
-        <line x1="10%" y1="70%" x2="20%" y2="82%" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="1" strokeDasharray="3 3" />
-
-        <circle cx="12%" cy="18%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3s" }} />
-        <circle cx="22%" cy="28%" r="2" fill="#2DD4BF" />
-        <circle cx="16%" cy="44%" r="2.5" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "4s" }} />
-        <circle cx="82%" cy="15%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3.5s" }} />
-        <circle cx="90%" cy="30%" r="2" fill="#2DD4BF" />
-        <circle cx="78%" cy="42%" r="2.5" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "4.5s" }} />
-        <circle cx="10%" cy="70%" r="2" fill="#2DD4BF" />
-        <circle cx="20%" cy="82%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3.2s" }} />
-        <circle cx="78%" cy="75%" r="2.5" fill="#2DD4BF" />
-        <circle cx="88%" cy="85%" r="3" fill="#38BDF8" className="animate-pulse" style={{ animationDuration: "3.8s" }} />
-        <circle cx="50%" cy="12%" r="2" fill="#38BDF8" />
-        <circle cx="52%" cy="65%" r="2" fill="#2DD4BF" />
-      </svg>
-    </div>
-  );
-}
-
-// ── Center Loading Splash Screen with Authentic Logo Dots Orbit (Responsive & High Performance) ──
-function LogoLoaderSplash({ onFinish, isRTL, lang, darkMode }) {
-  const [displayProgress, setDisplayProgress] = useState(0);
-
-  // Motion values for the exact 3 logo dots
-  const dot0X = useMotionValue(37);
-  const dot0Y = useMotionValue(62);
-  const dot0Scale = useMotionValue(1);
-
-  const dot1X = useMotionValue(95);
-  const dot1Y = useMotionValue(45);
-  const dot1Scale = useMotionValue(1);
-
-  const dot2X = useMotionValue(153);
-  const dot2Y = useMotionValue(31);
-  const dot2Scale = useMotionValue(1);
-
-  // Orbit halo ring visual properties
-  const orbitOpacity = useMotionValue(0);
-  const orbitDashOffset = useMotionValue(0);
-
-  const startTimeRef = useRef(null);
-  const finishedRef = useRef(false);
-
-  // Logo geometric constants (matching SVG viewBox -25 -10 240 260)
-  const CENTER_X = 95;
-  const CENTER_Y = 130;
-  const ORBIT_R = 94;
-
-  // Natural home positions of the 3 dots on top of the bars
-  const HOME_DOTS = [
-    { x: 37, y: 62 },  // Dot 0 (Left bar)
-    { x: 95, y: 45 },  // Dot 1 (Middle bar)
-    { x: 153, y: 31 }, // Dot 2 (Right bar: green)
+// The logo's three rising bars, drawn as a scalable decorative graphic.
+// Geometry mirrors the logo: equal-width pills, a dot above each, rising heights.
+function BarsGraphic({ className = "", animate = true, id = "bars" }) {
+  const reduce = useReducedMotion();
+  const bars = [
+    { x: 0,   h: 84,  delay: 0.15 },
+    { x: 52,  h: 116, delay: 0.3 },
+    { x: 104, h: 148, delay: 0.45 },
   ];
-
-  // Starting departure angles on the orbit circle (radians)
-  const BASE_ANGLES = [
-    Math.PI * 1.15,
-    Math.PI * 1.15 + (2 * Math.PI) / 3,
-    Math.PI * 1.15 + (4 * Math.PI) / 3,
-  ];
-
-  // Snappy, modern timeline (~1.85s total)
-  const DOCK_TIMELINE = [
-    { start: 0.95, end: 1.18 },
-    { start: 1.18, end: 1.40 },
-    { start: 1.40, end: 1.62 },
-  ];
-  const OMEGA = 11.2;
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-
-  useAnimationFrame((time) => {
-    if (finishedRef.current) return;
-    if (startTimeRef.current === null) {
-      startTimeRef.current = time;
-    }
-
-    const elapsed = (time - startTimeRef.current) / 1000;
-
-    const calcDot = (i) => {
-      const home = HOME_DOTS[i];
-      const baseAngle = BASE_ANGLES[i];
-      const dockStart = DOCK_TIMELINE[i].start;
-      const dockEnd = DOCK_TIMELINE[i].end;
-
-      if (elapsed < 0.25) {
-        return { x: home.x, y: home.y, scale: 1 };
-      }
-
-      if (elapsed < 0.50) {
-        const u = (elapsed - 0.25) / 0.25;
-        const ease = u * u * (3 - 2 * u);
-        const targetX = CENTER_X + ORBIT_R * Math.cos(baseAngle);
-        const targetY = CENTER_Y + ORBIT_R * Math.sin(baseAngle);
-        return {
-          x: (1 - ease) * home.x + ease * targetX,
-          y: (1 - ease) * home.y + ease * targetY,
-          scale: 1 + ease * 0.12,
-        };
-      }
-
-      if (elapsed < dockStart) {
-        const currentAngle = baseAngle + OMEGA * (elapsed - 0.50);
-        return {
-          x: CENTER_X + ORBIT_R * Math.cos(currentAngle),
-          y: CENTER_Y + ORBIT_R * Math.sin(currentAngle),
-          scale: 1.12,
-        };
-      }
-
-      if (elapsed < dockEnd) {
-        const leaveAngle = baseAngle + OMEGA * (dockStart - 0.50);
-        const startX = CENTER_X + ORBIT_R * Math.cos(leaveAngle);
-        const startY = CENTER_Y + ORBIT_R * Math.sin(leaveAngle);
-
-        const u = (elapsed - dockStart) / (dockEnd - dockStart);
-        const ease = 1 - Math.pow(1 - u, 3);
-        return {
-          x: (1 - ease) * startX + ease * home.x,
-          y: (1 - ease) * startY + ease * home.y,
-          scale: 1.12 - ease * 0.12,
-        };
-      }
-
-      const timeSinceLand = elapsed - dockEnd;
-      let bounce = 0;
-      if (timeSinceLand < 0.20) {
-        bounce = Math.sin((timeSinceLand / 0.20) * Math.PI) * 0.2;
-      }
-      return {
-        x: home.x,
-        y: home.y,
-        scale: 1 + bounce,
-      };
-    };
-
-    const s0 = calcDot(0);
-    dot0X.set(s0.x);
-    dot0Y.set(s0.y);
-    dot0Scale.set(s0.scale);
-
-    const s1 = calcDot(1);
-    dot1X.set(s1.x);
-    dot1Y.set(s1.y);
-    dot1Scale.set(s1.scale);
-
-    const s2 = calcDot(2);
-    dot2X.set(s2.x);
-    dot2Y.set(s2.y);
-    dot2Scale.set(s2.scale);
-
-    orbitDashOffset.set(elapsed * 120);
-    let ringOpacity = 0;
-    if (elapsed < 0.25) {
-      ringOpacity = 0;
-    } else if (elapsed < 0.50) {
-      ringOpacity = ((elapsed - 0.25) / 0.25) * 0.85;
-    } else if (elapsed < DOCK_TIMELINE[0].end) {
-      ringOpacity = 0.85;
-    } else if (elapsed < DOCK_TIMELINE[1].end) {
-      ringOpacity = 0.55;
-    } else if (elapsed < DOCK_TIMELINE[2].end) {
-      ringOpacity = 0.3;
-    } else {
-      ringOpacity = 0;
-    }
-    orbitOpacity.set(ringOpacity);
-
-    let prog = 0;
-    if (elapsed < 0.25) {
-      prog = Math.floor((elapsed / 0.25) * 20);
-    } else if (elapsed < 0.50) {
-      prog = 20 + Math.floor(((elapsed - 0.25) / 0.25) * 18);
-    } else if (elapsed < DOCK_TIMELINE[0].end) {
-      prog = 38 + Math.floor(((elapsed - 0.50) / (DOCK_TIMELINE[0].end - 0.50)) * 32);
-    } else if (elapsed < DOCK_TIMELINE[1].end) {
-      prog = 70 + Math.floor(((elapsed - DOCK_TIMELINE[0].end) / (DOCK_TIMELINE[1].end - DOCK_TIMELINE[0].end)) * 16);
-    } else if (elapsed < DOCK_TIMELINE[2].end) {
-      prog = 86 + Math.floor(((elapsed - DOCK_TIMELINE[1].end) / (DOCK_TIMELINE[2].end - DOCK_TIMELINE[1].end)) * 14);
-    } else {
-      prog = 100;
-    }
-    setDisplayProgress(Math.min(prog, 100));
-
-    if (elapsed >= 1.85) {
-      if (!finishedRef.current) {
-        finishedRef.current = true;
-        setDisplayProgress(100);
-        onFinish();
-      }
-    }
-  });
-
-  const navyColor = darkMode ? "#38BDF8" : "#101828";
-  const greenColor = "var(--brand, #21C87A)";
-  const greenDotColor = "var(--brand, #21C87A)";
-
+  const W = 40, R = 20, GAP = 12, TOP = 196;
+  const run = animate && !reduce;
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.03, filter: "blur(6px)" }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed inset-0 h-[100dvh] w-screen z-[9999] flex flex-col items-center justify-center px-4 py-6 overflow-hidden select-none touch-none overscroll-none transition-colors duration-500 ${
-        darkMode ? "bg-[#090E1A] text-white" : "bg-[#F8FAFC] text-[#101828]"
-      }`}
-    >
-      {/* Background soft ambient blur (optimized size for mobile GPUs) */}
-      <div
-        className={`absolute w-64 h-64 sm:w-[420px] sm:h-[420px] rounded-full blur-3xl sm:blur-[120px] pointer-events-none transition-colors duration-500 ${
-          darkMode ? "bg-[var(--brand)]/15" : "bg-[var(--brand)]/12"
-        }`}
-      />
-
-      {/* SVG Container: responsive width & height max bounds so it never clips on small mobile screens */}
-      <div className="relative w-[190px] h-[190px] xs:w-[230px] xs:h-[230px] sm:w-[280px] sm:h-[280px] max-h-[30vh] flex items-center justify-center mb-4 sm:mb-6 shrink-0">
-        <div
-          className="absolute w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-[var(--brand)]/20 blur-xl pointer-events-none"
-        />
-
-        <svg
-          viewBox="-25 -10 240 260"
-          className="w-full h-full object-contain relative z-10"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Orbit rings */}
-          <motion.circle
-            cx={CENTER_X}
-            cy={CENTER_Y}
-            r={ORBIT_R}
-            fill="none"
-            stroke="var(--brand, #21C87A)"
-            strokeWidth="1.8"
-            strokeDasharray="8 10"
-            style={{
-              opacity: orbitOpacity,
-              strokeDashoffset: orbitDashOffset,
-            }}
+    <svg viewBox="0 -8 144 208" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={`${id}-g`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#8BC8E7" />
+          <stop offset="1" stopColor="#257DB6" />
+        </linearGradient>
+      </defs>
+      {bars.map((b, i) => (
+        <g key={i}>
+          <motion.rect
+            x={b.x} width={W} rx={R} fill={`url(#${id}-g)`}
+            initial={run ? { y: TOP, height: 0 } : false}
+            animate={{ y: TOP - b.h, height: b.h }}
+            transition={{ duration: 0.9, delay: b.delay, ease: EASE }}
           />
           <motion.circle
-            cx={CENTER_X}
-            cy={CENTER_Y}
-            r={ORBIT_R + 22}
-            fill="none"
-            stroke="var(--brand, #21C87A)"
-            strokeWidth="1"
-            strokeDasharray="4 12"
-            style={{
-              opacity: orbitOpacity,
-            }}
+            cx={b.x + R} r={R} fill={`url(#${id}-g)`}
+            initial={run ? { cy: TOP - R, opacity: 0 } : false}
+            animate={{ cy: TOP - b.h - GAP - R, opacity: 1 }}
+            transition={{ duration: 0.9, delay: b.delay + 0.1, ease: EASE }}
           />
-
-          {/* 3 Rising Bars */}
-          <motion.g
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 140, damping: 16 }}
-          >
-            <rect
-              x={15}
-              y={98}
-              width={44}
-              height={113}
-              rx={22}
-              fill={navyColor}
-              className="transition-colors duration-500"
-            />
-            <rect
-              x={73}
-              y={81}
-              width={44}
-              height={144}
-              rx={22}
-              fill={navyColor}
-              className="transition-colors duration-500"
-            />
-            <rect
-              x={131}
-              y={65}
-              width={44}
-              height={160}
-              rx={22}
-              fill={greenColor}
-            />
-          </motion.g>
-
-          {/* 3 Orbiting & Docking Dots */}
-          <motion.circle
-            cx={dot0X}
-            cy={dot0Y}
-            r={17}
-            fill={navyColor}
-            style={{
-              scale: dot0Scale,
-              originX: "50%",
-              originY: "50%",
-            }}
-            className="transition-colors duration-500"
-          />
-
-          <motion.circle
-            cx={dot1X}
-            cy={dot1Y}
-            r={17}
-            fill={navyColor}
-            style={{
-              scale: dot1Scale,
-              originX: "50%",
-              originY: "50%",
-            }}
-            className="transition-colors duration-500"
-          />
-
-          <motion.circle
-            cx={dot2X}
-            cy={dot2Y}
-            r={17}
-            fill={greenDotColor}
-            style={{
-              scale: dot2Scale,
-              originX: "50%",
-              originY: "50%",
-            }}
-            className="transition-colors duration-500"
-          />
-        </svg>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.35 }}
-        className="text-center mb-4 sm:mb-6 z-10 shrink-0"
-      >
-        <h2
-          className={`font-heading font-black text-xl sm:text-2xl md:text-3xl tracking-tight flex items-center justify-center gap-2 ${
-            darkMode ? "text-white" : "text-[#101828]"
-          }`}
-        >
-          <span>{lang === "ar" ? "شغال" : "Shaghal"}</span>
-          <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-ping" />
-        </h2>
-        <p
-          className="text-[10px] sm:text-xs font-bold tracking-widest uppercase mt-1 text-[var(--brand)]"
-        >
-          {lang === "ar" ? "استوديو الأنظمة الرقمية" : "Digital Systems Studio"}
-        </p>
-      </motion.div>
-
-      <div className="w-48 xs:w-56 sm:w-60 z-10 flex flex-col items-center gap-2 shrink-0">
-        <div
-          className={`w-full h-1.5 rounded-full overflow-hidden p-[1px] relative border transition-colors duration-500 ${
-            darkMode ? "bg-slate-800/80 border-white/10" : "bg-slate-200/90 border-slate-300/60"
-          }`}
-        >
-          <div
-            className="h-full rounded-full brand-green-gradient shadow-[0_0_12px_rgba(var(--brand-rgb),0.8)] transition-[width] duration-75 ease-out"
-            style={{ width: `${displayProgress}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between w-full text-[10px] xs:text-[11px] font-mono font-bold px-1">
-          <span className="text-[var(--brand)]">
-            {displayProgress < 100
-              ? (lang === "ar" ? "جاري تهيئة الأنظمة..." : "Initializing systems...")
-              : (lang === "ar" ? "اكتملت التهيئة ✓" : "Ready ✓")}
-          </span>
-          <span className={darkMode ? "text-white" : "text-[#101828]"}>
-            {displayProgress}%
-          </span>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// ── Process Line-Art Icons ──────────────────────────────────────────────────
-const PROCESS_ICONS = [Compass, FileCheck2, Cpu, MonitorCheck];
-
-const SERVICE_ICONS = { pos: Monitor, warehouse: Warehouse, clinic: Stethoscope };
-
-// ── Adaptive Vector Brand Logo Component ─────────────────────────────────────
-function BrandLogo({ className = "w-10 h-10", isDark = false }) {
-  return (
-    <svg viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-label="Shaghal Logo">
-      {/* Bar 1 (Shortest: Navy in light, Electric Blue in dark) */}
-      <circle cx="22" cy="42" r="8" fill={isDark ? "#38BDF8" : "#101828"} />
-      <rect x="14" y="52" width="16" height="64" rx="8" fill={isDark ? "#1E3A8A" : "#101828"} />
-
-      {/* Bar 2 (Medium: Deep Navy in light, Cyan-Blue in dark) */}
-      <circle cx="60" cy="32" r="9" fill={isDark ? "#60A5FA" : "#0D2240"} />
-      <rect x="51" y="43" width="18" height="73" rx="9" fill={isDark ? "#0D2240" : "#0D2240"} stroke={isDark ? "#38BDF8" : "none"} strokeWidth={isDark ? 1 : 0} />
-
-      {/* Bar 3 (Tallest: Signature Emerald Green) */}
-      <circle cx="100" cy="24" r="10" fill={isDark ? "#4EEDB0" : "#21C87A"} />
-      <rect x="90" y="36" width="20" height="80" rx="10" fill="#21C87A" />
+        </g>
+      ))}
     </svg>
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Product screenshot. `fill` crops to the parent's box, top-aligned. ─────
+function Shot({ shot, alt, className = "", eager = false, fill = true }) {
+  return (
+    <img
+      src={shot.src}
+      alt={alt}
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
+      draggable={false}
+      className={`block w-full ${fill ? "h-full object-cover object-top" : "h-auto"} ${className}`}
+    />
+  );
+}
+
+function BrowserFrame({ children, className = "" }) {
+  return (
+    <div className={`frame ${className}`}>
+      <div className="frame-bar" dir="ltr"><i /><i /><i /></div>
+      {children}
+    </div>
+  );
+}
+
+function Reveal({ children, delay = 0, className = "", as = "div" }) {
+  const reduce = useReducedMotion();
+  const Comp = motion[as];
+  return (
+    <Comp
+      className={className}
+      initial={reduce ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6, delay, ease: EASE }}
+    >
+      {children}
+    </Comp>
+  );
+}
+
+function SectionHead({ eyebrow, title, desc, center = true }) {
+  return (
+    <Reveal className={`max-w-2xl ${center ? "mx-auto text-center" : ""} mb-12 lg:mb-16`}>
+      <span className="eyebrow mb-4">{eyebrow}</span>
+      <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-[44px] leading-[1.25] text-[var(--ink)] text-balance">
+        {title}
+      </h2>
+      {desc && <p className="mt-4 text-base sm:text-lg text-[var(--muted)] leading-relaxed">{desc}</p>}
+    </Reveal>
+  );
+}
+
+const WhatsAppIcon = ({ className = "w-5 h-5" }) => (
+  <svg className={`${className} fill-current`} viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+  </svg>
+);
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 export default function AgencyWebsite() {
-  const [isLoading,   setIsLoading]  = useState(true);
-  const [lang,       setLang]       = useState(() => localStorage.getItem("Aura_lang") || "ar");
-  const [darkMode,   setDarkMode]   = useState(() => localStorage.getItem("Aura_theme") === "dark");
-  const [theme,      setTheme]      = useState(() => {
-    const saved = localStorage.getItem("shaghal_theme");
-    return (saved && saved !== "ledger") ? saved : "mercury";
+  // ?lang=en|ar wins (shareable links), then the saved choice, then Arabic.
+  const [lang, setLang] = useState(() => {
+    const q = new URLSearchParams(window.location.search).get("lang");
+    if (q === "ar" || q === "en") return q;
+    try { return localStorage.getItem("Aura_lang") || "ar"; } catch { return "ar"; }
   });
-  const [menuOpen,   setMenuOpen]   = useState(false);
-  const [filter,     setFilter]     = useState("all");
-  const [openFaq,    setOpenFaq]    = useState(0);
-  const [faqQuery,   setFaqQuery]   = useState("");
-  const [showTop,    setShowTop]    = useState(false);
-  const [scrolled,   setScrolled]   = useState(false);
-  const [toastMsg,   setToastMsg]   = useState(null);
-  const [formState,  setFormState]  = useState({ name: "", contact: "", service: "", details: "" });
-  const [formSent,   setFormSent]   = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [activeService, setActiveService] = useState(null);
-  const [activeCase,    setActiveCase]    = useState(null);
-  const [activeScreenshotIdx, setActiveScreenshotIdx] = useState(null);
+  // Saved choice, otherwise follow the OS setting.
+  const [dark, setDark] = useState(() => {
+    try {
+      const saved = localStorage.getItem("Aura_theme");
+      if (saved) return saved === "dark";
+    } catch {}
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [heroTab, setHeroTab] = useState("pos");
+  const [heroPaused, setHeroPaused] = useState(false);
+  const [openFaq, setOpenFaq] = useState(0);
+  const [gallery, setGallery] = useState(null); // { key, idx }
+  const [toast, setToast] = useState(null);
+  const [form, setForm] = useState({ name: "", contact: "", system: "", details: "" });
 
-  const t     = COPY[lang] || COPY.ar;
+  const t = COPY[lang] || COPY.ar;
   const isRTL = lang === "ar";
-  const shouldReduceMotion = useReducedMotion();
-  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  const Fwd = isRTL ? ArrowLeft : ArrowRight;
+  const reduce = useReducedMotion();
+
+  // Language, direction, theme
+  useEffect(() => {
+    const root = document.documentElement;
+    root.lang = lang;
+    root.dir = t.dir;
+    try { localStorage.setItem("Aura_lang", lang); } catch {}
+    document.title = isRTL
+      ? "شغال | Shaghal — أنظمة نقاط البيع والعيادات والمخازن"
+      : "Shaghal — Custom POS, Clinic & Inventory Systems";
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) desc.setAttribute("content", isRTL
+      ? "شغال (Shaghal) — شركة برمجيات بتبني أنظمة مخصصة لنقاط البيع POS وإدارة العيادات والمخازن والعهد. تعمل أونلاين وتكمّل أوفلاين، مع دعم ٢٤/٧."
+      : "Shaghal builds custom POS, clinic management and inventory systems that run online, keep working offline, and come with 24/7 support.");
+  }, [lang, t.dir, isRTL]);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener("resize", handleResize, { passive: true });
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    document.documentElement.classList.toggle("dark", dark);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", dark ? "#08182A" : "#FFFFFF");
+  }, [dark]);
 
-  const disableHeavyMotion = shouldReduceMotion || isMobile;
-
-  // Page-wide scroll progress bar (uses direct pageScroll on mobile to eliminate spring calculation overhead)
-  const { scrollYProgress: pageScroll } = useScroll();
-  const scrollProgressSpring = useSpring(pageScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  const progressMotion = isMobile ? pageScroll : scrollProgressSpring;
-
-
-  // Theme & Dark-mode & Lang sync
+  // Header shadow on scroll
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("shaghal_theme", theme);
-  }, [theme]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-    localStorage.setItem("Aura_theme", darkMode ? "dark" : "light");
-  }, [darkMode]);
-
-  useEffect(() => {
-    document.documentElement.lang = lang;
-    document.documentElement.dir  = t.dir;
-    localStorage.setItem("Aura_lang", lang);
-
-    if (lang === "ar") {
-      document.title = "شغال | Shaghal — استوديو الأنظمة الرقمية والبرمجية المخصصة";
-      const descMeta = document.querySelector('meta[name="description"]');
-      if (descMeta) {
-        descMeta.setAttribute(
-          "content",
-          "شغال (Shaghal) — استوديو تقني متخصص في تصميم وتطوير الأنظمة الرقمية المخصصة للشركات: نقاط البيع POS، إدارة العيادات الطبية EMR، وإدارة المخازن والعهد بدقة وأعلى كفاءة."
-        );
-      }
-    } else {
-      document.title = "Shaghal | Custom Digital Systems Studio — High Performance Business Software";
-      const descMeta = document.querySelector('meta[name="description"]');
-      if (descMeta) {
-        descMeta.setAttribute(
-          "content",
-          "Shaghal — Custom Software & Digital Systems Studio. We engineer tailored solutions for enterprises: POS systems, Medical Clinic Management, and Warehouse & Asset Tracking."
-        );
-      }
-    }
-  }, [lang, t.dir]);
-
-  // High-performance scroll listener: rAF-throttled + only triggers state updates when boolean flips
-  useEffect(() => {
-    let lastScrolled = window.scrollY > 40;
-    let lastShowTop = window.scrollY > 500;
-    let ticking = false;
-
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const y = window.scrollY;
-          const nextScrolled = y > 40;
-          const nextShowTop = y > 500;
-          if (nextScrolled !== lastScrolled) {
-            lastScrolled = nextScrolled;
-            setScrolled(nextScrolled);
-          }
-          if (nextShowTop !== lastShowTop) {
-            lastShowTop = nextShowTop;
-            setShowTop(nextShowTop);
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Body scroll lock when mobile drawer is open
+  // Hero tabs auto-advance until the visitor interacts
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [menuOpen]);
+    if (heroPaused || reduce) return;
+    const order = ["pos", "clinic", "warehouse"];
+    const id = setInterval(() => {
+      setHeroTab(k => order[(order.indexOf(k) + 1) % order.length]);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [heroPaused, reduce]);
 
-  const activeScreenshots = activeService?.screenshots || CLINIC_SCREENSHOTS;
-
-  // Lightbox keyboard navigation & focus trapping
+  // Lock scroll under overlays
   useEffect(() => {
-    if (activeScreenshotIdx === null) return;
-    const total = activeScreenshots.length;
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setActiveScreenshotIdx(null);
-      } else if (e.key === "ArrowRight") {
-        setActiveScreenshotIdx(prev => {
-          if (prev === null) return null;
-          return isRTL ? (prev === 0 ? total - 1 : prev - 1) : (prev === total - 1 ? 0 : prev + 1);
-        });
-      } else if (e.key === "ArrowLeft") {
-        setActiveScreenshotIdx(prev => {
-          if (prev === null) return null;
-          return isRTL ? (prev === total - 1 ? 0 : prev + 1) : (prev === 0 ? total - 1 : prev - 1);
-        });
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeScreenshotIdx, isRTL, activeScreenshots]);
+    document.body.style.overflow = menuOpen || gallery ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen, gallery]);
 
-  // Toast
-  const showToast = useCallback((msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+  const shotsFor = key => SCREENSHOTS[key] || [];
+  const step = useCallback((dir) => {
+    setGallery(g => {
+      if (!g) return g;
+      const n = shotsFor(g.key).length;
+      return { ...g, idx: (g.idx + dir + n) % n };
+    });
   }, []);
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(EMAIL);
-    showToast(t.toast.emailCopied);
+  useEffect(() => {
+    if (!gallery) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setGallery(null);
+      // "Next" is visually to the left in RTL
+      if (e.key === "ArrowRight") step(isRTL ? -1 : 1);
+      if (e.key === "ArrowLeft") step(isRTL ? 1 : -1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [gallery, isRTL, step]);
+
+  const toggleTheme = () => setDark(d => {
+    try { localStorage.setItem("Aura_theme", d ? "light" : "dark"); } catch {}
+    return !d;
+  });
+
+  const toastTimer = useRef(null);
+  const showToast = (msg) => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
   };
 
-  const handleSubmit = (e) => {
+  const copyEmail = async () => {
+    try { await navigator.clipboard.writeText(EMAIL); showToast(t.toast.emailCopied); } catch {}
+  };
+
+  const submit = (e) => {
     e.preventDefault();
-    if (!formState.name || !formState.contact) return;
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setFormSent(true);
-      showToast(t.toast.formSubmitted);
-      setFormState({ name: "", contact: "", service: "", details: "" });
-    }, 900);
+    const c = t.contact;
+    const lines = [
+      c.waIntro,
+      `${c.waName}: ${form.name}`,
+      `${c.waContact}: ${form.contact}`,
+      form.system && `${c.waSystem}: ${form.system}`,
+      form.details && `${c.waDetails}: ${form.details}`,
+    ].filter(Boolean);
+    window.open(whatsappLink(lines.join("\n")), "_blank", "noopener,noreferrer");
   };
 
-  const filteredPortfolio = useMemo(() => {
-    if (filter === "all") return t.portfolio;
-    return t.portfolio.filter(p => p.key === filter);
-  }, [filter, t.portfolio]);
+  const navItems = [
+    ["#services", t.nav.systems], ["#why", t.nav.why], ["#process", t.nav.process],
+    ["#faq", t.nav.faq], ["#contact", t.nav.contact],
+  ];
 
-  const filteredFaqs = useMemo(() => {
-    if (!faqQuery.trim()) return t.faqs;
-    const q = faqQuery.toLowerCase();
-    return t.faqs.filter(f => f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q));
-  }, [faqQuery, t.faqs]);
-
-  // Shared viewport transition prop (no negative margin on mobile to ensure smooth appearance)
-  const vp = { once: true, margin: isMobile ? "0px" : "-60px" };
+  const heroShot = shotsFor(heroTab)[0];
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 relative ${
-      darkMode ? "bg-[#101828] text-slate-100" : "bg-[var(--bg)] text-[var(--ink)]"
-    }`} dir={t.dir}>
+    <div dir={t.dir} className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
 
-      {/* ── Initial Splash / Loading Screen ──────────────────────── */}
-      <AnimatePresence>
-        {isLoading && (
-          <LogoLoaderSplash
-            onFinish={() => setIsLoading(false)}
-            isRTL={isRTL}
-            lang={lang}
-            darkMode={darkMode}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Background Cyber Scan Light & Constellation Dots ───── */}
-      <ElegantTechBackground darkMode={darkMode} />
-
-      {/* ── Scroll Progress Bar (Neon Top Indicator) ───────────────── */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--brand)] via-[var(--brand-hover)] to-[var(--brand)] z-[100] origin-left shadow-[0_0_14px_rgba(var(--brand-rgb),0.9)]"
-        style={{ scaleX: progressMotion }}
-      />
-
-      {/* ── TOAST ─────────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {toastMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#101828] text-white
-              dark:bg-white dark:text-[#101828] px-6 py-3.5 rounded-full shadow-2xl flex items-center
-              gap-3 border border-[var(--brand)]/40 text-sm max-w-md w-[90%]"
-          >
-            <CheckCircle2 className="w-5 h-5 text-[var(--brand)] shrink-0" />
-            <span>{toastMsg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── NAVBAR ────────────────────────────────────────────────────────── */}
-      <header className={`sticky top-0 z-50 glass-nav transition-all duration-300 ${
-        scrolled ? "shadow-sm bg-white/92 dark:bg-[#101828]/92 py-2" : "bg-transparent py-4"
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <a href="#" className="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-lg p-1">
-            <BrandLogo className="w-10 h-10 shrink-0 group-hover:scale-105 transition-transform drop-shadow-md" isDark={darkMode} />
-            <div className="flex flex-col">
-              <span className="font-heading font-black text-xl tracking-tight text-[var(--ink)] dark:text-white">
-                {lang === "ar" ? "شغال" : "Shaghal"}
-              </span>
-              <span className="text-[10px] tracking-widest text-[var(--muted)] dark:text-slate-400 font-semibold -mt-1 uppercase">
-                {lang === "ar" ? "استوديو الأنظمة الرقمية" : "Digital Systems Studio"}
-              </span>
-            </div>
+      {/* ── HEADER ─────────────────────────────────────────────────────── */}
+      <header
+        className={`sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 border-b ${
+          scrolled || menuOpen
+            ? "bg-[var(--bg)]/85 backdrop-blur-xl border-[var(--line)] shadow-[0_6px_24px_-18px_rgba(21,61,104,.5)]"
+            : "bg-transparent border-transparent"
+        }`}
+      >
+        <div className="container-x h-[72px] flex items-center justify-between gap-6">
+          <a href="#top" aria-label={t.brandAlt} className="shrink-0 rounded-xl">
+            <Lockup lang={lang} />
           </a>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-7">
-            {[
-              ["#hero", t.nav.home], ["#about", t.nav.about], ["#services", t.nav.services],
-              ["#process", t.nav.process], ["#work", t.nav.work],
-              ["#testimonials", t.nav.testimonials], ["#faq", t.nav.faq],
-            ].map(([href, label]) => (
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Main">
+            {navItems.map(([href, label]) => (
               <a key={href} href={href}
-                className="text-sm font-bold text-[var(--ink)] dark:text-slate-200 hover:text-[var(--brand)] transition-colors py-1 focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-md">
+                className="px-3.5 py-2 rounded-full text-[15px] font-semibold text-[var(--ink-2)] hover:text-[var(--accent)] hover:bg-[var(--surface)] transition-colors">
                 {label}
               </a>
             ))}
           </nav>
 
-          {/* Controls */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Dark Mode Toggle */}
-            <button onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-              aria-label="Toggle dark mode">
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-[var(--ink)]" />}
-            </button>
-
-            {/* Language Switch */}
-            <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)]
-                dark:border-slate-800 text-xs font-bold text-[var(--ink)] dark:text-slate-200
-                hover:border-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-              aria-label="Change language">
-              <Globe className="w-3.5 h-3.5 text-[var(--brand)]" />
+          <div className="hidden lg:flex items-center gap-2">
+            <button onClick={() => setLang(isRTL ? "en" : "ar")}
+              className="h-10 px-3.5 rounded-full text-sm font-bold text-[var(--ink-2)] hover:bg-[var(--surface)] transition-colors"
+              aria-label="Switch language">
               {t.langSwitch}
             </button>
-
-            <a href="#contact"
-              className="cta-pulse-btn mercury-pill-btn mercury-pill-btn-primary px-6 py-2.5 rounded-full
-                text-white font-heading font-bold text-sm flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-              {t.cta}
-              {isRTL
-                ? <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                : <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-            </a>
+            <button onClick={toggleTheme}
+              className="w-10 h-10 grid place-items-center rounded-full text-[var(--ink-2)] hover:bg-[var(--surface)] transition-colors"
+              aria-label={dark ? t.themeLight : t.themeDark}>
+              {dark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
+            <a href="#contact" className="btn btn-primary btn-sm ms-1">{t.cta}</a>
           </div>
 
-          {/* Mobile Controls */}
-          <div className="flex lg:hidden items-center gap-2">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-full bg-slate-200/60 dark:bg-slate-800 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition-colors"
-              style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2.5 rounded-full bg-[#101828] text-white dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors"
-              style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              aria-expanded={menuOpen}
-            >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+          <button onClick={() => setMenuOpen(o => !o)}
+            className="lg:hidden w-11 h-11 grid place-items-center rounded-full border border-[var(--line)] bg-[var(--card)]"
+            aria-label="Menu" aria-expanded={menuOpen}>
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
-        {/* ── Mobile Drawer ── */}
         <AnimatePresence>
           {menuOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                key="backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-                onClick={() => setMenuOpen(false)}
-                aria-hidden="true"
-              />
-              {/* Drawer Panel */}
-              <motion.div
-                key="drawer"
-                initial={{ opacity: 0, y: -12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="lg:hidden glass-modal border-t border-[var(--border)] dark:border-slate-800 relative z-50"
-              >
-                <div className="px-5 py-6 flex flex-col gap-1">
-                  {/* Nav Links */}
-                  {[
-                    ["#hero", t.nav.home],
-                    ["#about", t.nav.about],
-                    ["#services", t.nav.services],
-                    ["#process", t.nav.process],
-                    ["#work", t.nav.work],
-                    ["#testimonials", t.nav.testimonials],
-                    ["#faq", t.nav.faq],
-                  ].map(([href, label]) => (
-                    <a
-                      key={href}
-                      href={href}
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center font-semibold text-base text-[var(--ink)] dark:text-white
-                        hover:text-[var(--brand)] border-b border-[var(--border)] dark:border-slate-800
-                        transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-md px-2"
-                      style={{ minHeight: 48 }}
-                    >
-                      {label}
-                    </a>
-                  ))}
-
-                  {/* Controls Row */}
-                  <div className="flex items-center gap-3 pt-4 pb-1">
-                    {/* Dark Mode Toggle */}
-                    <button
-                      onClick={() => setDarkMode(!darkMode)}
-                      className="flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border border-[var(--border)] dark:border-slate-700
-                        text-sm font-bold text-[var(--ink)] dark:text-white hover:border-[var(--brand)] transition-colors"
-                      style={{ minHeight: 44 }}
-                      aria-label="Toggle dark mode"
-                    >
-                      {darkMode
-                        ? <><Sun className="w-4 h-4 text-amber-400" /><span className="text-xs">{isRTL ? 'فاتح' : 'Light'}</span></>
-                        : <><Moon className="w-4 h-4" /><span className="text-xs">{isRTL ? 'داكن' : 'Dark'}</span></>}
-                    </button>
-
-                    {/* Language Switch */}
-                    <button
-                      onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-                      className="flex items-center gap-2 flex-1 px-3 py-2.5 rounded-xl border border-[var(--border)] dark:border-slate-700
-                        text-sm font-bold text-[var(--ink)] dark:text-white hover:border-[var(--brand)] transition-colors"
-                      style={{ minHeight: 44 }}
-                      aria-label="Change language"
-                    >
-                      <Globe className="w-4 h-4 text-[var(--brand)]" />
-                      <span className="text-xs">{t.langSwitch}</span>
-                    </button>
-                  </div>
-
-                  {/* Full-width CTA */}
-                  <a
-                    href="#contact"
-                    onClick={() => setMenuOpen(false)}
-                    className="mt-2 w-full flex items-center justify-center gap-2 rounded-full text-white
-                      font-heading font-bold brand-green-gradient cta-pulse-btn
-                      focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                    style={{ minHeight: 52, fontSize: '1rem' }}
-                  >
-                    {t.cta}
-                    {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+            <motion.div
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: EASE }}
+              className="lg:hidden overflow-hidden border-t border-[var(--line)] bg-[var(--bg)]"
+            >
+              <div className="container-x py-4 flex flex-col">
+                {navItems.map(([href, label]) => (
+                  <a key={href} href={href} onClick={() => setMenuOpen(false)}
+                    className="flex items-center justify-between min-h-[52px] text-base font-semibold border-b border-[var(--line)]">
+                    {label}
+                    <Fwd className="w-4 h-4 text-[var(--muted)]" />
                   </a>
+                ))}
+                <div className="flex gap-2 pt-4">
+                  <button onClick={() => setLang(isRTL ? "en" : "ar")} className="btn btn-ghost btn-sm flex-1">
+                    {t.langSwitch}
+                  </button>
+                  <button onClick={toggleTheme} className="btn btn-ghost btn-sm flex-1">
+                    {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    {dark ? t.themeLight : t.themeDark}
+                  </button>
                 </div>
-              </motion.div>
-            </>
+                <a href="#contact" onClick={() => setMenuOpen(false)} className="btn btn-primary mt-3 w-full">
+                  {t.cta}
+                </a>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </header>
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section id="hero"
-        className="relative pt-16 pb-28 lg:pt-24 lg:pb-36 overflow-hidden bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern">
-        {/* Soft ambient glow with GPU-composited radial gradient (disabled on mobile for silky 60fps scrolling) */}
-        {disableHeavyMotion ? (
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full pointer-events-none -z-10"
-            style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
-        ) : (
-          <motion.div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full pointer-events-none -z-10"
-            style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)", willChange: "transform", transform: "translateZ(0)" }}
-            animate={{ x: [0, 35, -25, 0], y: [0, -15, 12, 0], scale: [1, 1.05, 0.97, 1] }}
-            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
+      <main id="top">
+        {/* ── HERO ─────────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden -mt-[72px] pt-[72px]">
+          <div className="absolute inset-0 -z-10" style={{ background: "var(--grad-soft)" }} />
+          <div className="absolute inset-0 -z-10 bg-dots mask-fade-b" />
+          <div className="absolute -top-40 start-1/2 -z-10 w-[900px] h-[900px] rounded-full opacity-60 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(139,200,231,.35), transparent 60%)" }} />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div initial="hidden" animate="visible" variants={STAGGER} className="max-w-5xl mx-auto">
-
-            {/* Eyebrow */}
-            <motion.div variants={FI_UP} className="inline-block mb-6">
-              <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full
-                bg-[var(--soft)] border border-[var(--brand)]/30 text-xs sm:text-sm font-bold text-[var(--ink)] dark:text-white">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--brand)] animate-ping" />
-                {t.hero.eyebrow}
-              </span>
-            </motion.div>
-
-            {/* Giant Headline */}
-            <motion.h1 variants={FI_UP}
-              className="mercury-h1 text-4xl sm:text-6xl md:text-7xl lg:text-[76px]
-                text-[var(--ink)] dark:text-white mb-8 tracking-tight font-black flex flex-col items-center justify-center">
-              {isRTL && t.hero.titleLine1 ? (
-                <>
-                  <span className="block leading-[1.3] pb-2 sm:pb-3">{t.hero.titleLine1}</span>
-                  <span className="block leading-[1.3] pt-2 sm:pt-4 mb-3">{t.hero.titleLine2}</span>
-                </>
-              ) : (
-                <span className="block whitespace-pre-line mb-3 leading-[1.3]">{t.hero.title}</span>
-              )}
-              <span className="text-[var(--brand)] block leading-[1.3] pt-1">{t.hero.titleAccent}</span>
-            </motion.h1>
-
-            {/* Description */}
-            <motion.p variants={FI_UP}
-              className="text-base sm:text-lg lg:text-xl text-[var(--muted)] dark:text-slate-300
-                max-w-2xl mx-auto mb-10 leading-relaxed">
-              {t.hero.desc}
-            </motion.p>
-
-            {/* CTA Pills */}
-            <motion.div variants={FI_UP}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10 px-2 sm:px-0">
-              <a href="#services"
-                className="w-full sm:w-auto px-9 py-4 rounded-full text-white font-heading font-bold
-                  text-base mercury-pill-btn mercury-pill-btn-primary cta-pulse-btn flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                style={{ minHeight: 52 }}>
-                {t.hero.explore}
-                {isRTL ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
-              </a>
-              <a href="#work"
-                className="w-full sm:w-auto px-9 py-4 rounded-full font-heading font-bold text-base
-                  mercury-pill-btn mercury-pill-btn-secondary flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                style={{ minHeight: 52 }}>
-                {t.hero.portfolio}
-              </a>
-            </motion.div>
-
-
-            {/* Hero Mockup — Simple, Clean & High Performance */}
-            <div className="mb-12 sm:mb-16 px-0 sm:px-2">
-              <div
-                className="relative max-w-5xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden border border-[var(--border)]
-                  dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900 p-2 sm:p-3 md:p-5"
-              >
-                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#101828] aspect-[4/3] sm:aspect-[16/9]
-                  flex items-center justify-center">
-                  <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=80&auto=format&fit=crop"
-                    alt="Shaghal Digital Systems Dashboard"
-                    className="w-full h-full object-cover opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#101828] via-[#101828]/25 to-transparent" />
-
-                  {/* Feature Badges */}
-                  <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-6 flex flex-wrap items-end justify-between gap-2 sm:gap-4">
-                    <div className="flex items-center gap-2 sm:gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-2.5 sm:p-3.5 px-3 sm:px-5 rounded-xl sm:rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
-                      <div className="mercury-line-art-badge w-8 h-8 sm:w-10 sm:h-10 shrink-0">
-                        <Database className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--brand)]" />
-                      </div>
-                      <div>
-                        <span className="block text-[11px] sm:text-xs font-bold text-[var(--ink)] dark:text-white">
-                          {isRTL ? "أنظمة برمجية مخصصة ١٠٠٪" : "100% Custom Systems"}
-                        </span>
-                        <span className="text-[10px] sm:text-[11px] text-[var(--muted)] dark:text-slate-400">
-                          {isRTL ? "نقاط بيع • مخازن • عيادات" : "POS • Warehouse • Clinics"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="hidden sm:flex items-center gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
-                      <Wifi className="w-5 h-5 text-[var(--brand)]" />
-                      <span className="text-xs font-bold text-[var(--ink)] dark:text-white">
-                        {isRTL ? "تزامن فوري بين الفروع" : "Instant Multi-Branch Sync"}
-                      </span>
-                    </div>
-
-                    <div className="hidden md:flex items-center gap-3 bg-white/95 dark:bg-[#101828]/95 backdrop-blur-md
-                        p-3.5 px-5 rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-xl">
-                      <BarChart3 className="w-5 h-5 text-[var(--brand)]" />
-                      <span className="text-xs font-bold text-[var(--ink)] dark:text-white">
-                        {isRTL ? "تقارير لحظية وذكية" : "Real-Time BI Analytics"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="container-x pt-12 pb-20 lg:pt-20 lg:pb-28 grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+            {/* Copy */}
+            <div className="lg:col-span-5 text-center lg:text-start">
+              <Reveal>
+                <span className="chip bg-[var(--card)] shadow-[var(--shadow)]">
+                  <span className="dot" />
+                  {t.hero.eyebrow}
+                </span>
+              </Reveal>
+              <Reveal delay={0.05}>
+                <h1 className="mt-6 font-display font-black text-[40px] leading-[1.2] sm:text-[52px] lg:text-[58px] lg:leading-[1.15] tracking-tight text-balance">
+                  {t.hero.title}{" "}
+                  <span className="text-grad">{t.hero.accent}</span>
+                </h1>
+              </Reveal>
+              <Reveal delay={0.1}>
+                <p className="mt-6 text-lg leading-relaxed text-[var(--muted)] max-w-xl mx-auto lg:mx-0">
+                  {t.hero.desc}
+                </p>
+              </Reveal>
+              <Reveal delay={0.15} className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                <a href="#contact" className="btn btn-primary">
+                  {t.hero.primary}
+                  <Fwd className="w-4 h-4" />
+                </a>
+                <a href="#services" className="btn btn-ghost">{t.hero.secondary}</a>
+              </Reveal>
+              <Reveal delay={0.2}>
+                <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 justify-center lg:justify-start text-sm font-semibold text-[var(--ink-2)]">
+                  {t.hero.points.map(p => (
+                    <li key={p} className="inline-flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-[var(--accent)]" />
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
             </div>
 
-            {/* 3 System Spotlight Cards */}
-            <motion.div variants={STAGGER} className="grid grid-cols-1 md:grid-cols-3 gap-8 text-right">
-              {t.services.map((srv) => {
-                const Icon = SERVICE_ICONS[srv.key] || Code2;
-                const img  = SERVICE_IMAGES[srv.key];
+            {/* Product visual */}
+            <div className="lg:col-span-7 relative">
+              <Reveal delay={0.1} className="relative">
+                {/* System tabs + the logo bars, side by side above the product frame */}
+                <div className="mb-4 flex items-end justify-between gap-4">
+                <div role="tablist" aria-label={t.nav.systems}
+                  className="inline-flex p-1 rounded-full bg-[var(--card)] border border-[var(--line)] shadow-[var(--shadow)] max-w-full overflow-x-auto no-scrollbar">
+                  {Object.entries(t.hero.tabs).map(([key, label]) => {
+                    const Icon = SYSTEM_ICONS[key];
+                    const active = heroTab === key;
+                    return (
+                      <button key={key} role="tab" aria-selected={active}
+                        onClick={() => { setHeroTab(key); setHeroPaused(true); }}
+                        className={`relative h-10 px-4 rounded-full text-sm font-bold inline-flex items-center gap-2 whitespace-nowrap transition-colors ${
+                          active ? "text-white" : "text-[var(--ink-2)] hover:text-[var(--accent)]"
+                        }`}>
+                        {active && (
+                          <motion.span layoutId="hero-tab" className="absolute inset-0 rounded-full"
+                            style={{ background: "linear-gradient(100deg,#3A93C9,#257DB6 50%,#1B5E92)" }}
+                            transition={{ type: "spring", stiffness: 400, damping: 34 }} />
+                        )}
+                        <Icon className="relative w-4 h-4" />
+                        <span className="relative">{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <BarsGraphic id="hero-bars" className="hidden sm:block h-20 lg:h-24 w-auto shrink-0 pointer-events-none drop-shadow-[0_12px_20px_rgba(37,125,182,.25)]" />
+                </div>
+
+                <BrowserFrame className="relative z-10">
+                  <div className="relative aspect-[1024/466] overflow-hidden">
+                    <AnimatePresence initial={false}>
+                      <motion.div key={heroTab}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="absolute inset-0">
+                        <Shot shot={heroShot} alt={isRTL ? heroShot.ar : heroShot.en} eager />
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                </BrowserFrame>
+
+                {/* Floating facts */}
+                <div className="hidden sm:flex absolute z-20 -bottom-6 start-6 card !rounded-2xl px-4 py-3 items-center gap-3">
+                  <span className="w-9 h-9 rounded-xl grid place-items-center bg-[var(--surface-2)] text-[var(--accent)]">
+                    <WifiOff className="w-[18px] h-[18px]" />
+                  </span>
+                  <span className="text-sm font-bold leading-tight">
+                    {t.why.items[0].t}
+                    <span className="block text-xs font-semibold text-[var(--muted)]">{t.hero.points[1]}</span>
+                  </span>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECTORS ──────────────────────────────────────────────────── */}
+        <section className="border-y border-[var(--line)] bg-[var(--bg)]">
+          <div className="container-x py-6 flex flex-col md:flex-row items-center gap-4 md:gap-8">
+            <span className="text-sm font-bold text-[var(--muted)] shrink-0">{t.sectors.title}</span>
+            <ul className="flex flex-wrap justify-center md:justify-start gap-2">
+              {t.sectors.items.map(s => (
+                <li key={s} className="chip"><span className="dot" />{s}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ── SYSTEMS ──────────────────────────────────────────────────── */}
+        <section id="services" className="section">
+          <div className="container-x">
+            <SectionHead eyebrow={t.systemsSection.eyebrow} title={t.systemsSection.title} desc={t.systemsSection.desc} />
+
+            <div className="space-y-20 lg:space-y-28">
+              {t.systems.map((sys, i) => {
+                const Icon = SYSTEM_ICONS[sys.key];
+                const shots = shotsFor(sys.key);
+                const flip = i % 2 === 1;
                 return (
-                  <SpotlightCard key={srv.key}
-                    variants={FI_UP}
-                    className="p-6 flex flex-col justify-between">
-                    <a href="#services" className="block focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-xl p-1">
-                      <div className="relative h-48 rounded-2xl overflow-hidden mb-5">
-                        <img src={img} alt={srv.title} loading="lazy" decoding="async"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/90 via-transparent to-transparent" />
-                        <span className="absolute top-3 right-3 bg-[#101828]/90 text-white font-bold text-xs px-2.5 py-1 rounded-md border border-[var(--brand)]/40">
-                          {srv.label}
-                        </span>
-                        <div className="absolute bottom-3 right-3 left-3 text-white flex items-center gap-3">
-                          <div className="mercury-line-art-badge w-9 h-9 shrink-0">
-                            <Icon className="w-4 h-4 text-[var(--brand)]" />
+                  <article key={sys.key} id={sys.key} className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+                    {/* Visual */}
+                    <Reveal className={`lg:col-span-7 ${flip ? "lg:order-2" : ""}`}>
+                      <button type="button" onClick={() => setGallery({ key: sys.key, idx: 0 })}
+                        className="group block w-full text-start rounded-[20px]"
+                        aria-label={`${sys.title} — ${t.systemsSection.viewScreens}`}>
+                        <div className="relative rounded-[28px] p-3 sm:p-5" style={{ background: "var(--grad-soft)" }}>
+                          <BrowserFrame className="transition-transform duration-500 group-hover:-translate-y-1">
+                            <div className="aspect-[1024/466] overflow-hidden">
+                              <Shot shot={shots[0]} alt={isRTL ? shots[0].ar : shots[0].en} />
+                            </div>
+                          </BrowserFrame>
+                          <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                            {shots.slice(1, 4).map((s, k) => (
+                              <div key={k} className="rounded-xl overflow-hidden border border-[var(--line)] bg-[var(--card)] aspect-[1024/466]">
+                                <Shot shot={s} alt={isRTL ? s.ar : s.en} />
+                              </div>
+                            ))}
                           </div>
-                          <div>
-                            <span className="font-heading font-black text-lg block">{srv.title}</span>
-                            <span className="text-[11px] text-slate-300 block">{srv.sub}</span>
-                          </div>
+                          <span className="absolute top-6 end-6 sm:top-8 sm:end-8 chip bg-[var(--card)]/95 backdrop-blur shadow-[var(--shadow)] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
+                            <Images className="w-4 h-4 text-[var(--accent)]" />
+                            {t.systemsSection.viewScreens} · {shots.length}
+                          </span>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-[var(--border)] dark:border-slate-800">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--muted)] dark:text-slate-300">
-                          <Sparkles className="w-3.5 h-3.5 text-[var(--brand)]" />
-                          {lang === "ar" ? "حل برمجي مخصص" : "Custom Solution"}
+                      </button>
+                    </Reveal>
+
+                    {/* Copy */}
+                    <Reveal delay={0.08} className={`lg:col-span-5 ${flip ? "lg:order-1" : ""}`}>
+                      <div className="flex items-center gap-3 mb-5">
+                        <span className="w-12 h-12 rounded-2xl grid place-items-center text-white shadow-[0_10px_24px_-10px_rgba(37,125,182,.8)]"
+                          style={{ background: "linear-gradient(140deg,#8BC8E7,#257DB6 60%,#153D68)" }}>
+                          <Icon className="w-6 h-6" />
                         </span>
-                        <span className="text-xs font-bold text-[var(--brand)] flex items-center gap-1 group-hover:translate-x-[-3px] transition-transform">
-                          {lang === "ar" ? "تفاصيل النظام" : "System Details"}
-                          {isRTL ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
+                        <span className="font-display font-black text-[var(--line)] text-5xl leading-none select-none" dir="ltr">
+                          0{i + 1}
                         </span>
                       </div>
-                    </a>
-                  </SpotlightCard>
+                      <h3 className="font-display font-extrabold text-2xl sm:text-3xl leading-snug">{sys.title}</h3>
+                      <p className="mt-1.5 font-bold text-[var(--accent)]">{sys.tagline}</p>
+                      <p className="mt-4 text-[var(--muted)] leading-relaxed">{sys.desc}</p>
+
+                      <ul className="mt-6 space-y-3">
+                        {sys.features.map(f => (
+                          <li key={f} className="flex items-start gap-3 text-[15px] text-[var(--ink-2)]">
+                            <span className="mt-1 w-5 h-5 rounded-full grid place-items-center bg-[var(--surface-2)] text-[var(--accent)] shrink-0">
+                              <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                            </span>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <dl className="mt-7 grid grid-cols-2 gap-3">
+                        <div className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-3.5">
+                          <dt className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
+                            <Users className="w-3.5 h-3.5" />{t.systemsSection.forLabel}
+                          </dt>
+                          <dd className="mt-1 text-sm font-bold leading-snug">{sys.audience}</dd>
+                        </div>
+                        <div className="rounded-2xl bg-[var(--surface)] border border-[var(--line)] p-3.5">
+                          <dt className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
+                            <Clock className="w-3.5 h-3.5" />{t.systemsSection.timelineLabel}
+                          </dt>
+                          <dd className="mt-1 text-sm font-bold leading-snug">{sys.timeline}</dd>
+                        </div>
+                      </dl>
+
+                      <div className="mt-7 flex flex-wrap gap-3">
+                        <a href="#contact" onClick={() => setForm(f => ({ ...f, system: t.contact.systemOptions[i] }))}
+                          className="btn btn-primary">
+                          {t.systemsSection.requestDemo}
+                          <Fwd className="w-4 h-4" />
+                        </a>
+                        <button type="button" onClick={() => setGallery({ key: sys.key, idx: 0 })} className="btn btn-ghost">
+                          <Images className="w-4 h-4" />
+                          {t.systemsSection.viewScreens}
+                        </button>
+                      </div>
+                    </Reveal>
+                  </article>
                 );
               })}
-            </motion.div>
-          </motion.div>
-
-          {/* Trusted Brands Strip */}
-          <div className="mt-20 max-w-5xl mx-auto border-t border-[var(--border)] dark:border-slate-800 pt-10">
-            <p className="text-xs font-bold text-[var(--muted)] dark:text-slate-400 uppercase tracking-widest mb-6">
-              {t.trustSection.title}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 opacity-80">
-              {TRUST_LOGOS.map((b, i) => (
-                <div key={i} className="px-4 py-2 rounded-full bg-white dark:bg-slate-900
-                  border border-[var(--border)] dark:border-slate-800 text-xs font-bold text-[var(--ink)] dark:text-slate-200">
-                  {b.name} <span className="text-[var(--brand)] font-semibold">({b.tag})</span>
-                </div>
-              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── ABOUT ─────────────────────────────────────────────────────────── */}
-      <section id="about" className="py-28 lg:py-40 bg-white dark:bg-slate-950
-        border-y border-[var(--border)] dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-
-            {/* Image */}
-            <motion.div initial="hidden" whileInView="visible" viewport={vp}
-              variants={isRTL ? SLIDE_LEFT : SLIDE_RIGHT}
-              className="lg:col-span-6 relative">
-              <div className="relative rounded-3xl overflow-hidden border border-[var(--border)]
-                dark:border-slate-800 shadow-xl">
-                <img src={ABOUT_IMAGE} alt={t.about.imageAlt} loading="lazy" decoding="async"
-                  className="w-full h-64 sm:h-80 md:h-[420px] lg:h-[460px] object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/50 via-transparent to-transparent" />
-              </div>
-
-              {/* Floating Badge 1 (In-House Team) — stacks on mobile */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
-                viewport={vp} transition={{ delay: 0.35 }}
-                className="float-badge-bottom absolute -bottom-6 right-4 sm:right-10 bg-white dark:bg-[#101828] p-3.5 sm:p-4 px-4 sm:px-6
-                  rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl flex items-center gap-3 sm:gap-4 animate-gentle-float">
-                <div className="mercury-line-art-badge">
-                  <Users className="w-6 h-6 text-[var(--brand)]" />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-[var(--ink)] dark:text-white">
-                    {t.about.badgeTitle}
-                  </h4>
-                  <p className="text-xs text-[var(--muted)] dark:text-slate-400">
-                    {t.about.badgeSub}
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Floating Badge 2 (99.9% Uptime Guarantee) — stacks on mobile */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
-                viewport={vp} transition={{ delay: 0.45 }}
-                className="float-badge-top absolute -top-6 left-4 sm:left-10 bg-white dark:bg-[#101828] p-3 sm:p-3.5 px-4 sm:px-5
-                  rounded-2xl border border-[var(--border)] dark:border-slate-800 shadow-2xl flex items-center gap-3 sm:gap-3.5 animate-gentle-float"
-                style={{ animationDelay: "2s" }}>
-                <div className="mercury-line-art-badge w-9 h-9 sm:w-10 sm:h-10">
-                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--brand)]" />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-xs sm:text-sm text-[var(--ink)] dark:text-white">
-                    {isRTL ? "ضمان استقرار ٩٩.٩٪" : "99.9% Uptime SLA"}
-                  </h4>
-                  <p className="text-[11px] text-[var(--muted)] dark:text-slate-400">
-                    {isRTL ? "دعم وتحديثات مستمرة" : "SLA & Active Support"}
-                  </p>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            {/* Text */}
-            <motion.div initial="hidden" whileInView="visible" viewport={vp}
-              variants={STAGGER} className="lg:col-span-6">
-              <motion.span variants={FI_UP} className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-                {t.about.eyebrow}
-              </motion.span>
-              <motion.h2 variants={FI_UP} className="mercury-h2 text-3xl sm:text-4xl md:text-5xl
-                text-[var(--ink)] dark:text-white mb-2">
-                {t.about.title}
-              </motion.h2>
-              <motion.h2 variants={FI_UP} className="mercury-h2 text-3xl sm:text-4xl md:text-5xl
-                text-[var(--brand)] mb-6">
-                {t.about.titleAccent}
-              </motion.h2>
-
-              <motion.p variants={FI_UP} className="text-[var(--muted)] dark:text-slate-300 text-base lg:text-lg leading-relaxed mb-4">
-                {t.about.p1}
-              </motion.p>
-              <motion.p variants={FI_UP} className="text-[var(--muted)] dark:text-slate-300 text-base lg:text-lg leading-relaxed mb-10">
-                {t.about.p2}
-              </motion.p>
-
-              <div className="space-y-4">
-                {t.about.highlights.map((hl, idx) => (
-                  <motion.div key={idx} variants={FI_UP}
-                    className="flex gap-4 p-5 rounded-2xl bg-[var(--bg)] dark:bg-slate-900
-                      border border-[var(--border)] dark:border-slate-800 hover:border-[var(--brand)]/50 transition-colors">
-                    <div className="w-7 h-7 rounded-full bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading font-bold text-sm text-[var(--ink)] dark:text-white mb-1">{hl[0]}</h4>
-                      <p className="text-xs sm:text-sm text-[var(--muted)] dark:text-slate-400 leading-normal">{hl[1]}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+        {/* ── WHY ──────────────────────────────────────────────────────── */}
+        <section id="why" className="section bg-[var(--surface)] border-y border-[var(--line)]">
+          <div className="container-x">
+            <SectionHead eyebrow={t.why.eyebrow} title={t.why.title} />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {t.why.items.map((w, i) => {
+                const Icon = WHY_ICONS[w.icon];
+                return (
+                  <Reveal key={w.t} delay={i * 0.06} className="card p-7 h-full transition-transform duration-300 hover:-translate-y-1">
+                    <span className="w-12 h-12 rounded-2xl grid place-items-center bg-[var(--surface-2)] text-[var(--accent)]">
+                      <Icon className="w-6 h-6" />
+                    </span>
+                    <h3 className="mt-5 font-display font-extrabold text-lg">{w.t}</h3>
+                    <p className="mt-2 text-[15px] text-[var(--muted)] leading-relaxed">{w.d}</p>
+                  </Reveal>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── SERVICES ──────────────────────────────────────────────────────── */}
-      <section id="services" className="py-28 lg:py-40 bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern relative overflow-hidden">
-        {/* Ambient accent glow with GPU-composited radial gradient (disabled on mobile for silky 60fps scrolling) */}
-        {disableHeavyMotion ? (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full pointer-events-none -z-10"
-            style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.12) 0%, rgba(var(--brand-rgb), 0.02) 55%, transparent 70%)" }} />
-        ) : (
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full pointer-events-none -z-10"
-            style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.12) 0%, rgba(var(--brand-rgb), 0.02) 55%, transparent 70%)", willChange: "transform", transform: "translateZ(0)" }}
-            animate={{ x: [0, -30, 20, 0], y: [0, 20, -12, 0], scale: [1, 0.96, 1.04, 1] }}
-            transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={vp} className="text-center max-w-3xl mx-auto mb-20">
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-              {t.servicesSection.eyebrow}
-            </span>
-            <h2 className="mercury-h2 text-3xl sm:text-5xl text-[var(--ink)] dark:text-white mb-4">
-              {t.servicesSection.title}
-            </h2>
-            <p className="text-[var(--muted)] dark:text-slate-300 text-base sm:text-lg">
-              {t.servicesSection.desc}
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
-            {t.services.map((srv, idx) => {
-              const Icon = SERVICE_ICONS[srv.key] || Code2;
-              const img  = SERVICE_IMAGES[srv.key];
-              return (
-                <SpotlightCard key={srv.key}
-                  initial={{ opacity: 0, y: 50, scale: 0.96 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={vp}
-                  transition={{ duration: 0.6, delay: idx * 0.14, ease: [0.16, 1, 0.3, 1] }}
-                  className="p-8 sm:p-10 flex flex-col justify-between">
-                  <div>
-                    {/* Mockup Preview Area */}
-                    <div className="relative h-64 sm:h-72 rounded-2xl overflow-hidden mb-6">
-                      <img src={img} alt={srv.title} loading="lazy" decoding="async"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#101828] via-[#101828]/45 to-transparent" />
-                      
-                      {/* Number Pill */}
-                      <span className="absolute top-4 right-4 bg-[#101828]/90 text-white font-heading font-black text-sm
-                        px-3.5 py-1 rounded-lg border border-[var(--brand)]/40 shadow-lg">
-                        {srv.label}
-                      </span>
-
-                      {/* Ready Badge */}
-                      <span className="absolute top-4 left-4 inline-flex items-center gap-2 bg-[#101828]/85 backdrop-blur-md
-                        text-white text-[11px] font-bold px-3 py-1.5 rounded-full border border-white/15 shadow-lg">
-                        <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-pulse" />
-                        {isRTL ? "متاح للتنفيذ" : "Ready to Deploy"}
-                      </span>
-
-                      {/* Title Header */}
-                      <div className="absolute bottom-4 right-4 left-4 text-white">
-                        <div className="flex items-center gap-3">
-                          <div className="mercury-line-art-badge w-11 h-11 shrink-0">
-                            <Icon className="w-5 h-5 text-[var(--brand)]" />
-                          </div>
-                          <div>
-                            <h3 className="font-heading font-black text-xl sm:text-2xl">{srv.title}</h3>
-                            <span className="text-xs text-slate-200 font-medium">{srv.sub}</span>
-                          </div>
-                        </div>
-                      </div>
+        {/* ── PROCESS — steps rise like the logo's bars ────────────────── */}
+        <section id="process" className="section">
+          <div className="container-x">
+            <SectionHead eyebrow={t.process.eyebrow} title={t.process.title} />
+            <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 lg:items-end">
+              {t.process.steps.map((s, i) => (
+                <Reveal as="li" key={s.t} delay={i * 0.08} className="relative">
+                  <div className="flex flex-col items-center lg:items-start">
+                    <span className="w-11 h-11 rounded-full grid place-items-center text-white font-black text-lg shadow-[0_10px_24px_-10px_rgba(37,125,182,.9)]"
+                      style={{ background: "linear-gradient(140deg,#8BC8E7,#257DB6 70%)" }} dir="ltr">
+                      {i + 1}
+                    </span>
+                    <div className="mt-3 w-full card !rounded-[22px] p-6 text-center lg:text-start"
+                      style={{ minHeight: `${150 + i * 28}px` }}>
+                      <h3 className="font-display font-extrabold text-lg">{s.t}</h3>
+                      <p className="mt-2 text-[15px] text-[var(--muted)] leading-relaxed">{s.d}</p>
                     </div>
+                  </div>
+                </Reveal>
+              ))}
+            </ol>
+          </div>
+        </section>
 
-                    <p className="text-[var(--muted)] dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-                      {srv.desc}
-                    </p>
+        {/* ── CLIENTS / TRUST ──────────────────────────────────────────── */}
+        <section className="pb-8">
+          <div className="container-x">
+            <Reveal>
+              <div className="relative overflow-hidden rounded-[32px] px-6 py-10 sm:px-12 sm:py-12 text-white"
+                style={{ background: "linear-gradient(120deg,#153D68 0%,#1E6599 55%,#257DB6 100%)" }}>
+                <BarsGraphic id="trust-bars" animate={false}
+                  className="absolute -bottom-6 end-6 w-40 sm:w-52 opacity-15 pointer-events-none" />
+                <div className="relative grid md:grid-cols-[1fr_auto] gap-8 items-center">
+                  <div className="max-w-2xl">
+                    <span className="inline-flex items-center gap-2 text-sm font-bold text-[#BFE3F5]">
+                      <Stethoscope className="w-4 h-4" />
+                      {t.systems[1].title}
+                    </span>
+                    <h2 className="mt-3 font-display font-extrabold text-2xl sm:text-3xl leading-snug">{t.clients.title}</h2>
+                    <p className="mt-3 text-[#D6ECF8] leading-relaxed">{t.clients.desc}</p>
+                  </div>
+                  <a href={whatsappLink(t.clients.wa)} target="_blank" rel="noopener noreferrer"
+                    className="btn bg-white text-[#153D68] hover:bg-[#EAF5FC] shadow-[0_12px_30px_-12px_rgba(0,0,0,.45)]">
+                    <WhatsAppIcon className="w-4 h-4" />
+                    {t.clients.cta}
+                  </a>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
 
-                    {/* Feature Preview Box (Enlarged Card Feature) */}
-                    <div className="space-y-2.5 mb-6 bg-[var(--bg)] dark:bg-slate-900/80 p-5 rounded-2xl border border-[var(--border)] dark:border-slate-800">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] dark:text-slate-400 block mb-1">
-                        {isRTL ? "أبرز مخرجات النظام:" : "Key System Capabilities:"}
-                      </span>
-                      {srv.deliverables.slice(0, 3).map((item, di) => (
-                        <div key={di} className="flex items-start gap-2.5 text-xs sm:text-sm text-[var(--ink)] dark:text-slate-200">
-                          <div className="w-4 h-4 rounded-full bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                          <span className="leading-snug">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-8">
-                      {srv.tags.map((tag, ti) => (
-                        <span key={ti}
-                          className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[var(--soft)] text-[var(--ink)]
-                            border border-[var(--brand)]/20 group-hover:bg-[var(--brand)] group-hover:text-white transition-colors">
-                          {tag}
+        {/* ── FAQ ──────────────────────────────────────────────────────── */}
+        <section id="faq" className="section">
+          <div className="container-x grid lg:grid-cols-12 gap-10 lg:gap-16">
+            <div className="lg:col-span-4">
+              <div className="lg:sticky lg:top-28">
+                <SectionHead eyebrow={t.faq.eyebrow} title={t.faq.title} desc={t.faq.desc} center={false} />
+                <a href={whatsappLink(t.waFloat)} target="_blank" rel="noopener noreferrer"
+                  className="btn btn-ghost -mt-4 lg:-mt-8">
+                  <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
+                  {t.faq.ask}
+                </a>
+              </div>
+            </div>
+            <div className="lg:col-span-8 space-y-3">
+              {t.faq.items.map((f, i) => {
+                const open = openFaq === i;
+                return (
+                  <Reveal key={f.q} delay={i * 0.04}
+                    className={`rounded-2xl border transition-colors ${open ? "bg-[var(--card)] border-[var(--accent)]/40 shadow-[var(--shadow)]" : "bg-[var(--surface)] border-[var(--line)]"}`}>
+                    <h3>
+                      <button type="button" onClick={() => setOpenFaq(open ? null : i)} aria-expanded={open}
+                        className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-start font-bold text-base sm:text-lg rounded-2xl">
+                        {f.q}
+                        <span className={`w-8 h-8 rounded-full grid place-items-center shrink-0 transition-all duration-300 ${open ? "rotate-45 bg-[var(--accent)] text-white dark:text-[#08182A]" : "bg-[var(--card)] text-[var(--accent)] border border-[var(--line)]"}`}>
+                          <Plus className="w-4 h-4" />
                         </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Bottom Bar */}
-                  <div className="pt-6 border-t border-[var(--border)] dark:border-slate-800 flex items-center justify-between">
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--brand)] bg-[var(--soft)] dark:bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-[var(--brand)]/25">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {lang === "ar" ? "تصميم وتطوير مخصص" : "Tailored Development"}
-                      </span>
-                    </div>
-                    <button onClick={() => setActiveService(srv)}
-                      className="px-6 py-3 rounded-full font-heading font-bold text-xs sm:text-sm
-                        mercury-pill-btn mercury-pill-btn-primary flex items-center gap-2 shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                      {t.servicesSection.learnMore}
-                      {isRTL ? <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> : <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-                    </button>
-                  </div>
-                </SpotlightCard>
-              );
-            })}
+                      </button>
+                    </h3>
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: EASE }} className="overflow-hidden">
+                          <p className="px-5 sm:px-6 pb-6 -mt-1 text-[var(--muted)] leading-relaxed">{f.a}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Reveal>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* SERVICE MODAL */}
-      <AnimatePresence>
-        {activeService && (
-          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setActiveService(null)}
-              className="fixed inset-0 bg-[#101828]/80 backdrop-blur-md" />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative glass-modal rounded-3xl p-6 sm:p-8 max-w-2xl w-full
-                border border-[var(--border)] dark:border-slate-800 shadow-2xl z-10 max-h-[90vh] overflow-y-auto">
-              <button onClick={() => setActiveService(null)}
-                className="absolute top-6 left-6 p-2.5 rounded-full bg-slate-100 dark:bg-slate-800
-                  hover:bg-[var(--brand)] hover:text-white transition-colors text-[var(--ink)] dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                aria-label="Close modal">
-                <X className="w-5 h-5" />
-              </button>
+        {/* ── CONTACT ──────────────────────────────────────────────────── */}
+        <section id="contact" className="section pt-0">
+          <div className="container-x">
+            <div className="card !rounded-[32px] overflow-hidden grid lg:grid-cols-12">
+              <div className="lg:col-span-5 p-8 sm:p-10 lg:p-12 relative" style={{ background: "var(--grad-soft)" }}>
+                <span className="eyebrow mb-4">{t.contact.eyebrow}</span>
+                <h2 className="font-display font-extrabold text-3xl sm:text-4xl leading-tight">{t.contact.title}</h2>
+                <p className="mt-4 text-[var(--muted)] leading-relaxed">{t.contact.desc}</p>
 
-              <div className="mb-6">
-                <span className="text-xs font-bold text-[var(--brand)] uppercase tracking-wider block mb-1">
-                  {activeService.sub}
-                </span>
-                <h3 className="font-heading font-black text-2xl sm:text-3xl text-[var(--ink)] dark:text-white">
-                  {activeService.title}
-                </h3>
-              </div>
-
-              <p className="text-[var(--muted)] dark:text-slate-300 text-sm leading-relaxed mb-6">
-                {activeService.desc}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="p-4 rounded-2xl bg-[var(--soft)]/60 dark:bg-slate-900
-                  border border-[var(--brand)]/30 flex items-center gap-3">
-                  <Clock className="w-6 h-6 text-[var(--brand)]" />
-                  <div>
-                    <span className="block text-xs font-semibold text-[var(--muted)] dark:text-slate-400">
-                      {t.serviceDetailModal.timelineLabel}
-                    </span>
-                    <strong className="text-sm font-bold text-[var(--ink)] dark:text-white">
-                      {activeService.timeline}
-                    </strong>
-                  </div>
-                </div>
-                <div className="p-4 rounded-2xl bg-[var(--bg)] dark:bg-slate-900
-                  border border-[var(--border)] dark:border-slate-800 flex items-center gap-3">
-                  <Wrench className="w-6 h-6 text-[var(--brand)]" />
-                  <div>
-                    <span className="block text-xs font-semibold text-[var(--muted)] dark:text-slate-400">
-                      {t.serviceDetailModal.toolsLabel}
-                    </span>
-                    <strong className="text-xs font-bold text-[var(--ink)] dark:text-white block max-w-[180px] truncate">
-                      {activeService.tools.join(", ")}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Deliverables Section */}
-              <h4 className="font-heading font-bold text-base text-[var(--ink)] dark:text-white mb-4 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-[var(--brand)]" />
-                {t.serviceDetailModal.deliverablesLabel}
-              </h4>
-              <div className="space-y-3 mb-8">
-                {activeService.deliverables.map((item, di) => (
-                  <div key={di} className="flex items-start gap-3 text-sm text-[var(--ink)] dark:text-slate-300">
-                    <div className="w-5 h-5 rounded-full bg-[var(--soft)] text-[var(--brand)]
-                      flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3.5 h-3.5" />
+                <ul className="mt-8 space-y-3">
+                  <li>
+                    <a href={whatsappLink(t.waFloat)} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-[var(--card)] border border-[var(--line)] hover:border-[#25D366] transition-colors">
+                      <span className="w-10 h-10 rounded-xl grid place-items-center bg-[#25D366] text-white"><WhatsAppIcon className="w-5 h-5" /></span>
+                      <span>
+                        <span className="block text-xs font-bold text-[var(--muted)]">{t.contact.waLabel}</span>
+                        <span className="block font-bold" dir="ltr">{PHONE}</span>
+                      </span>
+                    </a>
+                  </li>
+                  <li>
+                    <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[var(--card)] border border-[var(--line)]">
+                      <span className="w-10 h-10 rounded-xl grid place-items-center bg-[var(--surface-2)] text-[var(--accent)] shrink-0"><Mail className="w-5 h-5" /></span>
+                      <a href={`mailto:${EMAIL}`} className="min-w-0 flex-1">
+                        <span className="block text-xs font-bold text-[var(--muted)]">{t.contact.emailLabel}</span>
+                        <span className="block font-bold truncate" dir="ltr">{EMAIL}</span>
+                      </a>
+                      <button type="button" onClick={copyEmail} aria-label={t.contact.copy}
+                        className="w-9 h-9 grid place-items-center rounded-lg text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--surface)]">
+                        <Copy className="w-4 h-4" />
+                      </button>
                     </div>
-                    {item}
-                  </div>
-                ))}
+                  </li>
+                  <li className="flex items-center gap-3 px-3.5 text-sm font-semibold text-[var(--muted)]">
+                    <MapPin className="w-4 h-4 text-[var(--accent)]" />{t.contact.location}
+                  </li>
+                </ul>
               </div>
 
-              {/* Task 2: Real Product Screenshot Gallery (Only when activeService.screenshots exists) */}
-              {activeService.screenshots && activeService.screenshots.length > 0 && (
-                <div className="mb-8 pt-4 border-t border-[var(--border)] dark:border-slate-800">
-                  <h4 className="font-heading font-bold text-base text-[var(--ink)] dark:text-white mb-4 flex items-center gap-2">
-                    <MonitorCheck className="w-5 h-5 text-[var(--brand)]" />
-                    {t.serviceDetailModal.screenshotsLabel}
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {activeService.screenshots.map((shot, sIdx) => {
-                      const label = lang === "ar" ? shot.labelAr : shot.labelEn;
+              <form onSubmit={submit} className="lg:col-span-7 p-8 sm:p-10 lg:p-12 grid sm:grid-cols-2 gap-5">
+                <label className="block">
+                  <span className="block mb-2 text-sm font-bold">{t.contact.name}</span>
+                  <input className="field" required autoComplete="name" value={form.name} placeholder={t.contact.namePh}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                </label>
+                <label className="block">
+                  <span className="block mb-2 text-sm font-bold">{t.contact.phone}</span>
+                  <input className="field" required value={form.contact} placeholder={t.contact.phonePh}
+                    onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} />
+                </label>
+                <fieldset className="sm:col-span-2">
+                  <legend className="mb-2 text-sm font-bold">{t.contact.system}</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {t.contact.systemOptions.map(opt => {
+                      const on = form.system === opt;
                       return (
-                        <button
-                          key={sIdx}
-                          type="button"
-                          onClick={() => setActiveScreenshotIdx(sIdx)}
-                          className="group relative aspect-video rounded-2xl overflow-hidden border border-[var(--border)]
-                            dark:border-slate-800 bg-slate-900 focus-visible:ring-2 focus-visible:ring-[var(--brand)]
-                            focus-visible:ring-offset-2 outline-none text-left cursor-pointer"
-                        >
-                          <img
-                            src={shot.src}
-                            alt={label}
-                            className="w-full h-full object-cover group-hover:scale-105 group-hover:brightness-110 transition-all duration-300"
-                          />
-                          <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-2 bg-gradient-to-t from-black/85 via-black/55 to-transparent">
-                            <p className="text-[10px] sm:text-[11px] font-semibold text-white truncate text-center">
-                              {label}
-                            </p>
-                          </div>
+                        <button type="button" key={opt} aria-pressed={on}
+                          onClick={() => setForm(f => ({ ...f, system: on ? "" : opt }))}
+                          className={`h-10 px-4 rounded-full text-sm font-bold border transition-colors ${
+                            on ? "bg-[var(--accent)] border-[var(--accent)] text-white dark:text-[#08182A]" : "bg-[var(--bg)] border-[var(--line)] text-[var(--ink-2)] hover:border-[var(--accent)]"
+                          }`}>
+                          {opt}
                         </button>
                       );
                     })}
                   </div>
-                </div>
-              )}
-
-
-
-              {/* Bottom CTA Row */}
-              <div className="flex gap-3 pt-4 border-t border-[var(--border)] dark:border-slate-800">
-                <a href="#contact"
-                  onClick={() => { setFormState(p => ({ ...p, service: activeService.title })); setActiveService(null); }}
-                  className="flex-1 text-center py-3.5 rounded-full font-heading font-bold text-sm
-                    text-white brand-green-gradient shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                  {t.serviceDetailModal.cta}
-                </a>
-                <button onClick={() => setActiveService(null)}
-                  className="px-6 py-3.5 rounded-full text-sm font-bold border border-[var(--border)]
-                    dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                    text-[var(--ink)] dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                  {t.serviceDetailModal.close}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ── LIGHTBOX (FOR PRODUCT SYSTEM SCREENSHOTS) ────────────────────── */}
-      <AnimatePresence>
-        {activeScreenshotIdx !== null && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setActiveScreenshotIdx(null)}
-              className="absolute inset-0 cursor-zoom-out"
-            />
-
-            {/* Lightbox Container */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="relative z-10 max-w-5xl w-full flex flex-col items-center"
-            >
-              {/* Top Controls Bar */}
-              <div className="w-full flex items-center justify-between pb-3 text-white px-2">
-                <div className="flex items-center gap-3">
-                  <span className="font-heading font-bold text-sm sm:text-base text-white drop-shadow">
-                    {lang === "ar"
-                      ? activeScreenshots[activeScreenshotIdx]?.labelAr
-                      : activeScreenshots[activeScreenshotIdx]?.labelEn}
-                  </span>
-                  <span className="text-xs text-slate-400 bg-white/10 px-2.5 py-0.5 rounded-full font-mono">
-                    {activeScreenshotIdx + 1} / {activeScreenshots.length}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => setActiveScreenshotIdx(null)}
-                  className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                  title="Close (Esc)"
-                  aria-label="Close lightbox"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Main Image Viewport */}
-              <div className="relative w-full rounded-2xl overflow-hidden bg-slate-950/80 border border-white/10 shadow-2xl flex items-center justify-center p-2 sm:p-4">
-                <img
-                  src={activeScreenshots[activeScreenshotIdx]?.src}
-                  alt={lang === "ar" ? activeScreenshots[activeScreenshotIdx]?.labelAr : activeScreenshots[activeScreenshotIdx]?.labelEn}
-                  className="max-h-[72vh] sm:max-h-[78vh] w-auto max-w-full object-contain rounded-lg"
-                />
-
-                {/* Prev/Next Navigation Controls */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveScreenshotIdx(prev => {
-                      if (prev === null) return 0;
-                      const total = activeScreenshots.length;
-                      return isRTL ? (prev === total - 1 ? 0 : prev + 1) : (prev === 0 ? total - 1 : prev - 1);
-                    });
-                  }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/85 text-white border border-white/15 transition-all shadow-lg focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                  title="Previous screenshot"
-                  aria-label="Previous screenshot"
-                >
-                  {isRTL ? <ChevronRight className="w-6 h-6" /> : <ChevronLeft className="w-6 h-6" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveScreenshotIdx(prev => {
-                      if (prev === null) return 0;
-                      const total = activeScreenshots.length;
-                      return isRTL ? (prev === 0 ? total - 1 : prev - 1) : (prev === total - 1 ? 0 : prev + 1);
-                    });
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/85 text-white border border-white/15 transition-all shadow-lg focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                  title="Next screenshot"
-                  aria-label="Next screenshot"
-                >
-                  {isRTL ? <ChevronLeft className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
-                </button>
-              </div>
-
-              {/* Thumbnail Strip */}
-              <div className="flex items-center gap-2 mt-4 overflow-x-auto max-w-full py-1 px-2">
-                {activeScreenshots.map((shot, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setActiveScreenshotIdx(idx)}
-                    className={`relative w-16 sm:w-20 aspect-video rounded-md overflow-hidden border transition-all shrink-0 ${
-                      activeScreenshotIdx === idx
-                        ? "border-[var(--brand)] ring-2 ring-[var(--brand)] scale-105"
-                        : "border-white/20 opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    <img src={shot.src} alt="" className="w-full h-full object-cover" />
+                </fieldset>
+                <label className="block sm:col-span-2">
+                  <span className="block mb-2 text-sm font-bold">{t.contact.details}</span>
+                  <textarea className="field min-h-[120px] resize-y" rows={4} value={form.details} placeholder={t.contact.detailsPh}
+                    onChange={e => setForm(f => ({ ...f, details: e.target.value }))} />
+                </label>
+                <div className="sm:col-span-2">
+                  <button type="submit" className="btn btn-primary w-full sm:w-auto">
+                    <WhatsAppIcon className="w-4 h-4" />
+                    {t.contact.submit}
                   </button>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ── PROCESS (DARK SECTION) ─────────────────────────────────────────── */}
-      <section id="process" className="py-28 lg:py-40 bg-[#101828] text-white relative overflow-hidden tech-grid-pattern">
-        {/* Process ambient glow (disabled on mobile for silky 60fps scrolling) */}
-        {disableHeavyMotion ? (
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
-        ) : (
-          <motion.div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at center, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)", willChange: "transform", transform: "translateZ(0)" }}
-            animate={{ x: [0, 25, -18, 0], y: [0, -12, 16, 0], scale: [1, 1.04, 0.98, 1] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={vp} className="text-center max-w-3xl mx-auto mb-20">
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-              {t.processSection.eyebrow}
-            </span>
-            <h2 className="mercury-h2 text-3xl sm:text-5xl text-white mb-4">{t.processSection.title}</h2>
-            <p className="text-slate-300 text-base sm:text-lg">{t.processSection.desc}</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {t.process.map((step, idx) => {
-              const Icon = PROCESS_ICONS[idx];
-              return (
-                <SpotlightCard key={idx}
-                  initial={{ opacity: 0, y: 50, scale: 0.96 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={vp}
-                  transition={{ duration: 0.6, delay: idx * 0.14, ease: [0.16, 1, 0.3, 1] }}
-                  className="bg-slate-900/95 p-8 sm:p-10 flex flex-col justify-between border-slate-800 hover:border-[var(--brand)]">
-                  <div>
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="mercury-line-art-badge w-12 h-12">
-                        <Icon className="w-6 h-6 text-[var(--brand)]" />
-                      </div>
-                      <span className="font-heading font-black text-3xl text-slate-600
-                        group-hover:text-[var(--brand)] transition-colors dir-ltr">
-                        {String(idx + 1).padStart(2, '0')}
-                      </span>
-                    </div>
-                    <h3 className="font-heading font-bold text-xl sm:text-2xl text-white mb-3">{step.t}</h3>
-                    <p className="text-slate-400 text-sm sm:text-base leading-relaxed">{step.d}</p>
-                  </div>
-                </SpotlightCard>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PORTFOLIO ─────────────────────────────────────────────────────── */}
-      <section id="work" className="py-28 lg:py-40 bg-[var(--bg)] dark:bg-[#101828] tech-grid-pattern relative overflow-hidden">
-        {/* Ambient accent glow with GPU-composited radial gradient (disabled on mobile for silky 60fps scrolling) */}
-        {disableHeavyMotion ? (
-          <div className="absolute top-1/2 right-10 w-[600px] h-[600px] rounded-full pointer-events-none -z-10"
-            style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.12) 0%, rgba(var(--brand-rgb), 0.02) 55%, transparent 70%)" }} />
-        ) : (
-          <motion.div
-            className="absolute top-1/2 right-10 w-[600px] h-[600px] rounded-full pointer-events-none -z-10"
-            style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.12) 0%, rgba(var(--brand-rgb), 0.02) 55%, transparent 70%)", willChange: "transform", transform: "translateZ(0)" }}
-            animate={{ x: [0, -20, 24, 0], y: [0, 24, -16, 0], scale: [1, 1.05, 0.96, 1] }}
-            transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={vp} className="text-center max-w-3xl mx-auto mb-14">
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-              {t.workSection.eyebrow}
-            </span>
-            <h2 className="mercury-h2 text-3xl sm:text-5xl text-[var(--ink)] dark:text-white mb-4">
-              {t.workSection.title}
-            </h2>
-            <p className="text-[var(--muted)] dark:text-slate-300 text-base sm:text-lg">{t.workSection.desc}</p>
-          </motion.div>
-
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
-            {Object.entries(t.workSection.filters).map(([key, label]) => {
-              const active = filter === key;
-              return (
-                <motion.button key={key} onClick={() => setFilter(key)}
-                  layout
-                  className={`relative px-7 py-3 rounded-full text-xs sm:text-sm font-heading font-bold transition-all focus-visible:ring-2 focus-visible:ring-[var(--brand)] ${
-                    active
-                      ? "bg-[var(--brand)] text-white shadow-md scale-105"
-                      : "bg-white dark:bg-slate-900 border border-[var(--border)] dark:border-slate-800 text-[var(--ink)] dark:text-slate-300 hover:border-[var(--brand)]"
-                  }`}>
-                  {label}
-                  {active && (
-                    <motion.div layoutId="filterUnderline"
-                      className="absolute -bottom-1 left-4 right-4 h-0.5 bg-white rounded-full" />
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Grid */}
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {filteredPortfolio.map((item) => {
-                const imgUrl = item.image || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=80&auto=format&fit=crop";
-                return (
-                  <motion.div
-                    key={item.title}
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="h-full"
-                  >
-                    <SpotlightCard
-                      onClick={() => setActiveCase(item)}
-                      className="cursor-pointer p-8 sm:p-10 flex flex-col justify-between h-full">
-                    <div>
-                      {/* Image Frame */}
-                      <div className="relative h-64 sm:h-72 rounded-2xl overflow-hidden mb-6">
-                        <img src={imgUrl} alt={item.title} loading="lazy" decoding="async"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#101828]/90 via-[#101828]/35 to-transparent" />
-                        
-                        {/* Year Badge */}
-                        <span className="absolute top-4 right-4 bg-[#101828]/90 text-white font-bold text-xs
-                          px-3 py-1 rounded-full border border-[var(--brand)]/40 shadow-md">
-                          {item.year}
-                        </span>
-
-                        {/* Category Tag */}
-                        <span className="absolute top-4 left-4 bg-[var(--brand)] text-white font-bold text-[11px]
-                          px-3 py-1 rounded-full shadow-md">
-                          {t.workSection.filters[item.key] || item.key}
-                        </span>
-
-                        <div className="absolute bottom-4 right-4 left-4 text-white">
-                          <span className="text-xs text-[var(--brand)] font-bold block mb-1">{item.client}</span>
-                          <h3 className="font-heading font-black text-xl leading-snug">{item.title}</h3>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-[var(--muted)] dark:text-slate-400 font-semibold mb-2">{item.sub}</p>
-                      <p className="text-[var(--muted)] dark:text-slate-300 text-sm line-clamp-2 leading-relaxed mb-6">
-                        {item.challenge}
-                      </p>
-
-                      {/* Verified Result Highlight Box */}
-                      <div className="p-4 rounded-2xl bg-[var(--soft)]/80 dark:bg-slate-900/90 border border-[var(--brand)]/30 mb-6 flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-[var(--brand)] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                          <Sparkles className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ink)] dark:text-[var(--brand)]">
-                            {isRTL ? "الأثر والنتيجة المحققة:" : "Verified Impact:"}
-                          </span>
-                          <strong className="text-xs sm:text-sm font-bold text-[var(--ink)] dark:text-slate-200 block leading-snug">
-                            {item.results}
-                          </strong>
-                        </div>
-                      </div>
-
-                      {/* Deliverables Tags */}
-                      <div className="flex flex-wrap gap-1.5 mb-6">
-                        {item.deliverables.map((deliv, di) => (
-                          <span key={di} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--bg)] dark:bg-slate-800 text-[var(--muted)] dark:text-slate-300 border border-[var(--border)] dark:border-slate-700">
-                            {deliv}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bottom CTA */}
-                    <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--brand)] pt-4 border-t border-[var(--border)] dark:border-slate-800">
-                      <span className="group-hover:underline">{t.workSection.viewCase}</span>
-                      <div className="w-8 h-8 rounded-full bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center group-hover:bg-[var(--brand)] group-hover:text-white transition-colors">
-                        {isRTL ? <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" /> : <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />}
-                      </div>
-                    </div>
-                  </SpotlightCard>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CASE STUDY MODAL */}
-      <AnimatePresence>
-        {activeCase && (
-          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setActiveCase(null)}
-              className="fixed inset-0 bg-[#101828]/80 backdrop-blur-md" />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative glass-modal rounded-3xl p-8 max-w-2xl w-full
-                border border-[var(--border)] dark:border-slate-800 shadow-2xl z-10 max-h-[90vh] overflow-y-auto">
-              <button onClick={() => setActiveCase(null)}
-                className="absolute top-6 left-6 p-2.5 rounded-full bg-slate-100 dark:bg-slate-800
-                  hover:bg-[var(--brand)] hover:text-white transition-colors text-[var(--ink)] dark:text-slate-300 focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                aria-label="Close modal">
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="mb-6">
-                <div className="flex items-center gap-3 text-xs font-bold text-[var(--brand)] mb-2">
-                  <span>{activeCase.client}</span><span>•</span><span>{activeCase.year}</span>
+                  <p className="mt-3 text-xs text-[var(--muted)]">{t.contact.note}</p>
                 </div>
-                <h3 className="font-heading font-black text-2xl sm:text-3xl text-[var(--ink)] dark:text-white">
-                  {activeCase.title}
-                </h3>
-              </div>
-
-              <div className="space-y-4 mb-6">
-                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
-                  <h4 className="font-heading font-bold text-sm text-red-600 dark:text-red-400 mb-1">
-                    {t.caseStudyModal.challengeLabel}
-                  </h4>
-                  <p className="text-[var(--ink)] dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    {activeCase.challenge}
-                  </p>
-                </div>
-                <div className="p-4 rounded-2xl bg-[var(--soft)] dark:bg-slate-900 border border-[var(--brand)]/30">
-                  <h4 className="font-heading font-bold text-sm text-[var(--brand)] mb-1">
-                    {t.caseStudyModal.solutionLabel}
-                  </h4>
-                  <p className="text-[var(--ink)] dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    {activeCase.solution}
-                  </p>
-                </div>
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-                  <h4 className="font-heading font-bold text-sm text-emerald-600 dark:text-emerald-400 mb-1">
-                    {t.caseStudyModal.resultsLabel}
-                  </h4>
-                  <p className="text-[var(--ink)] dark:text-slate-300 text-xs sm:text-sm font-bold">
-                    {activeCase.results}
-                  </p>
-                </div>
-              </div>
-
-              <h4 className="font-heading font-bold text-sm text-[var(--ink)] dark:text-white mb-3">
-                {t.caseStudyModal.deliverablesLabel}
-              </h4>
-              <div className="space-y-2 mb-8">
-                {activeCase.deliverables.map((item, di) => (
-                  <div key={di} className="flex items-center gap-2 text-xs sm:text-sm text-[var(--ink)] dark:text-slate-300">
-                    <Check className="w-4 h-4 text-[var(--brand)]" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-[var(--border)] dark:border-slate-800">
-                <a href="#contact" onClick={() => setActiveCase(null)}
-                  className="block w-full text-center py-3.5 rounded-full font-heading font-bold
-                    text-sm text-white brand-green-gradient shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                  {t.caseStudyModal.cta}
-                </a>
-              </div>
-            </motion.div>
+              </form>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </section>
+      </main>
 
-      {/* ── STATS (Big Numbers) ────────────────────────────────────────────── */}
-      <section className="py-24 bg-white dark:bg-slate-950
-        border-y border-[var(--border)] dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial="hidden" whileInView="visible" viewport={vp} variants={STAGGER}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {t.stats.map((stat, i) => (
-              <motion.div key={i} variants={FI_UP} className="h-full">
-                <StatCard stat={stat} idx={i} />
-              </motion.div>
+      {/* ── FOOTER ─────────────────────────────────────────────────────── */}
+      <footer className="border-t border-[var(--line)] bg-[var(--surface)]">
+        <div className="container-x py-12 grid md:grid-cols-12 gap-8 items-start">
+          <div className="md:col-span-5">
+            <Lockup lang={lang} />
+            <p className="mt-4 text-sm text-[var(--muted)] leading-relaxed max-w-sm">{t.footer.tagline}</p>
+          </div>
+          <nav className="md:col-span-4 grid grid-cols-2 gap-y-2 text-sm font-semibold" aria-label="Footer">
+            {navItems.map(([href, label]) => (
+              <a key={href} href={href} className="text-[var(--ink-2)] hover:text-[var(--accent)] py-1 w-fit">{label}</a>
             ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS / CURRENT CLIENTS ─────────────────────────────────── */}
-      <section id="testimonials" className="py-24 lg:py-36 bg-[var(--bg)] dark:bg-[#101828] relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={vp} className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-              {t.testimonialsSection.eyebrow}
-            </span>
-            <h2 className="mercury-h2 text-3xl sm:text-5xl text-[var(--ink)] dark:text-white">
-              {t.testimonialsSection.title}
-            </h2>
-          </motion.div>
-
-          {t.testimonials && t.testimonials.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {t.testimonials.map((item, idx) => {
-                const avatar = TESTIMONIAL_AVATARS[idx];
-                const fromRight = idx % 2 === 0;
-                return (
-                  <SpotlightCard key={idx}
-                    initial={{ opacity: 0, x: fromRight ? (isRTL ? 60 : -60) : (isRTL ? -60 : 60) }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={vp}
-                    transition={{ duration: 0.65, delay: idx * 0.14, ease: [0.16, 1, 0.3, 1] }}
-                    className="secondary-card p-8 sm:p-10 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-6 text-amber-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-amber-400" />
-                        ))}
-                      </div>
-                      <p className="text-[var(--ink)] dark:text-slate-300 text-sm lg:text-base leading-relaxed italic mb-8">
-                        "{item.text}"
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4 pt-6 border-t border-[var(--border)] dark:border-slate-800">
-                      <img src={avatar} alt={item.name} loading="lazy" decoding="async"
-                        className="avatar-img w-12 h-12 rounded-full object-cover border-2 border-[var(--brand)] shadow-md" />
-                      <div>
-                        <h4 className="font-heading font-bold text-base text-[var(--ink)] dark:text-white">{item.name}</h4>
-                        <p className="text-xs text-[var(--muted)] dark:text-slate-400 font-medium">{item.role}</p>
-                      </div>
-                    </div>
-                  </SpotlightCard>
-                );
-              })}
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={vp}
-              className="max-w-4xl mx-auto"
-            >
-              <div className="relative rounded-3xl p-8 sm:p-12 bg-white dark:bg-slate-900 border border-[var(--brand)]/30 dark:border-[var(--brand)]/25 shadow-2xl overflow-hidden">
-                <div className="absolute top-0 right-0 w-72 h-72 bg-[var(--brand)]/10 rounded-full blur-3xl pointer-events-none" />
-                
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-10">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-[var(--soft)] text-[var(--brand)] flex items-center justify-center shrink-0 border border-[var(--brand)]/30 shadow-inner">
-                    <ShieldCheck className="w-10 h-10 sm:w-12 sm:h-12" />
-                  </div>
-
-                  <div className="flex-1 text-center md:text-start">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--soft)] text-[var(--brand)] text-xs font-bold mb-4 border border-[var(--brand)]/25">
-                      <span className="w-2 h-2 rounded-full bg-[var(--brand)] animate-pulse" />
-                      {isRTL ? "خصوصية وسرية بيانات المنشآت الطبية" : "Medical Facilities Data Privacy & NDA Protected"}
-                    </div>
-
-                    <p className="text-[var(--ink)] dark:text-slate-200 text-base sm:text-lg lg:text-xl font-medium leading-relaxed mb-6">
-                      {t.testimonialsSection.text}
-                    </p>
-
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                      <a
-                        href={`https://wa.me/201033844561?text=${encodeURIComponent(isRTL ? "مرحباً، أود الاستفسار عن الأنظمة وطلب مكالمة مرجعية (Reference Call) وعرض تجريبي." : "Hello, I would like to inquire about your systems and request a Reference Call & Demo.")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-heading font-black text-sm text-white brand-green-gradient shadow-lg hover:opacity-95 transition-opacity focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                      >
-                        <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                        </svg>
-                        <span>{t.testimonialsSection.ctaWhatsapp}</span>
-                      </a>
-                      <a
-                        href="#contact"
-                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-heading font-bold text-sm text-[var(--ink)] dark:text-slate-300 bg-[var(--soft)] dark:bg-slate-800 hover:opacity-90 border border-[var(--border)] dark:border-slate-700 transition-all focus-visible:ring-2 focus-visible:ring-[var(--brand)]"
-                      >
-                        <span>{t.testimonialsSection.cta}</span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </section>
-
-      {/* ── FAQ ───────────────────────────────────────────────────────────── */}
-      <section id="faq" className="py-28 lg:py-40 bg-white dark:bg-slate-950
-        border-t border-[var(--border)] dark:border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={vp} className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-              {t.faqSection.eyebrow}
-            </span>
-            <h2 className="mercury-h2 text-3xl sm:text-5xl text-[var(--ink)] dark:text-white mb-6">
-              {t.faqSection.title}
-            </h2>
-            <div className="relative">
-              <input type="text" value={faqQuery} onChange={e => setFaqQuery(e.target.value)}
-                placeholder={t.faqSearch.placeholder}
-                className="w-full px-6 py-4 pl-12 rounded-full bg-[var(--bg)] dark:bg-slate-900
-                  border border-[var(--border)] dark:border-slate-800 focus:border-[var(--brand)] focus:outline-none
-                  text-sm text-[var(--ink)] dark:text-white placeholder-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
-              <Search className="w-5 h-5 text-[var(--brand)] absolute top-1/2 -translate-y-1/2 left-4 pointer-events-none" />
-            </div>
-          </motion.div>
-
-          <div className="space-y-4">
-            {filteredFaqs.length === 0 ? (
-              <p className="text-center text-[var(--muted)] text-sm py-8">{t.faqSearch.noResults}</p>
-            ) : filteredFaqs.map((faq, idx) => {
-              const isOpen = openFaq === idx;
-              return (
-                <motion.div key={idx}
-                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                  viewport={vp} transition={{ delay: idx * 0.07 }}
-                  className="secondary-card mercury-card overflow-hidden">
-                  <button onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full p-6 text-right flex items-center justify-between gap-4
-                      font-heading font-bold text-base sm:text-lg text-[var(--ink)] dark:text-white
-                      hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                    <span>{faq.q}</span>
-                    <motion.div animate={{ rotate: isOpen ? 45 : 0 }} transition={{ duration: 0.25 }}
-                      className="w-8 h-8 rounded-full bg-[var(--soft)] text-[var(--brand)]
-                        flex items-center justify-center shrink-0">
-                      <Plus className="w-5 h-5" />
-                    </motion.div>
-                  </button>
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="px-6 pb-6 text-sm sm:text-base text-[var(--muted)] dark:text-slate-300
-                          leading-relaxed border-t border-[var(--border)] dark:border-slate-800 pt-4">
-                        {faq.a}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+          </nav>
+          <div className="md:col-span-3 space-y-2 text-sm">
+            <a href={whatsappLink(t.waFloat)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-semibold text-[var(--ink-2)] hover:text-[var(--accent)] w-fit">
+              <WhatsAppIcon className="w-4 h-4 text-[#25D366]" /><span dir="ltr">{PHONE}</span>
+            </a>
+            <a href={`mailto:${EMAIL}`} className="flex items-center gap-2 font-semibold text-[var(--ink-2)] hover:text-[var(--accent)] w-fit break-all">
+              <Mail className="w-4 h-4 text-[var(--accent)] shrink-0" />{EMAIL}
+            </a>
           </div>
         </div>
-      </section>
-
-      {/* ── CONTACT (DARK SECTION) ─────────────────────────────────────────── */}
-      <section id="contact" className="py-20 sm:py-28 lg:py-40 bg-[#101828] text-white relative overflow-hidden">
-        {/* Contact ambient glow (disabled on mobile for silky 60fps scrolling) */}
-        {disableHeavyMotion ? (
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)" }} />
-        ) : (
-          <motion.div
-            className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(var(--brand-rgb), 0.14) 0%, rgba(var(--brand-rgb), 0.03) 50%, transparent 70%)", willChange: "transform", transform: "translateZ(0)" }}
-            animate={{ x: [0, -25, 18, 0], y: [0, 20, -12, 0], scale: [1, 1.05, 0.98, 1] }}
-            transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-            <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={vp} className="lg:col-span-5">
-              <span className="text-xs font-bold uppercase tracking-widest text-[var(--brand)] block mb-3">
-                {t.contact.eyebrow}
-              </span>
-              <h2 className="mercury-h2 text-3xl sm:text-5xl text-white mb-6">{t.contact.title}</h2>
-              <p className="text-slate-300 text-base leading-relaxed mb-10">{t.contact.desc}</p>
-
-              <div className="space-y-4">
-                <button onClick={handleCopyEmail}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10
-                    hover:border-[var(--brand)] transition-colors w-full text-start group focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                  <Mail className="w-5 h-5 text-[var(--brand)] shrink-0" />
-                  <span className="text-sm font-semibold text-slate-200 flex-1">{EMAIL}</span>
-                  <Copy className="w-4 h-4 text-slate-400 group-hover:text-white shrink-0" />
-                </button>
-                <a
-                  href={WHATSAPP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10
-                    hover:border-[#25D366] transition-colors w-full text-start group focus-visible:ring-2 focus-visible:ring-[#25D366]"
-                >
-                  <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
-                    <svg className="w-3.5 h-3.5 text-white fill-current" viewBox="0 0 24 24">
-                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                    </svg>
-                  </div>
-                  <div className="flex-1 text-start">
-                    <span className="text-sm font-semibold text-slate-200 dir-ltr inline-block font-mono">{PHONE}</span>
-                    <span className="block text-[11px] text-slate-400">{isRTL ? "واتساب مبيعات ودعم فني" : "WhatsApp Business & Support"}</span>
-                  </div>
-                </a>
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <MapPin className="w-5 h-5 text-[var(--brand)] shrink-0" />
-                  <span className="text-sm font-semibold text-slate-200">{t.contact.location}</span>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={vp} transition={{ delay: 0.2 }} className="lg:col-span-7">
-              <div className="bg-[#101828] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-[var(--brand)]/25 shadow-2xl">
-                {formSent ? (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-12">
-                    <div className="w-16 h-16 rounded-full brand-green-gradient flex items-center
-                      justify-center mx-auto mb-4 text-white shadow-xl">
-                      <CheckCircle2 className="w-8 h-8" />
-                    </div>
-                    <h3 className="font-heading font-black text-2xl text-white mb-2">{t.contact.sent}</h3>
-                    <button onClick={() => setFormSent(false)}
-                      className="mt-6 px-6 py-2.5 rounded-full text-xs font-bold bg-white/10
-                        hover:bg-white/20 text-white transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                      {t.contact.sendAnother}
-                    </button>
-                  </motion.div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {[
-                      { key: "name",    label: t.contact.namePh,    type: "text",     ph: t.contact.namePh },
-                      { key: "contact", label: t.contact.contactPh, type: "text",     ph: t.contact.contactPh },
-                    ].map(f => (
-                      <div key={f.key}>
-                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                          {f.label}
-                        </label>
-                      <input type={f.type} required value={formState[f.key]}
-                          onChange={e => setFormState(p => ({ ...p, [f.key]: e.target.value }))}
-                          placeholder={f.ph}
-                          style={{ minHeight: 48 }}
-                          className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-slate-700
-                            text-white placeholder-slate-500 focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
-                      </div>
-                    ))}
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                        {t.contact.servicePh}
-                      </label>
-                      <select value={formState.service}
-                        onChange={e => setFormState(p => ({ ...p, service: e.target.value }))}
-                        style={{ minHeight: 48 }}
-                        className="w-full px-4 py-3.5 rounded-2xl bg-[#101828] border border-slate-700
-                          text-white focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                        <option value="">{t.contact.selectPlaceholder}</option>
-                        {t.contact.serviceOptions.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                        {t.contact.detailsPh}
-                      </label>
-                      <textarea rows={4} value={formState.details}
-                        onChange={e => setFormState(p => ({ ...p, details: e.target.value }))}
-                        placeholder={t.contact.detailsPh}
-                        className="w-full px-4 py-3.5 rounded-2xl bg-white/5 border border-slate-700
-                          text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[var(--brand)] focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
-                    </div>
-
-                    <button type="submit" disabled={submitting}
-                      className="w-full py-4 rounded-full font-heading font-black text-base text-white
-                        brand-green-gradient cta-pulse-btn hover:opacity-95 transition-opacity
-                        flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--brand)]">
-                      {submitting ? t.contact.sending : (
-                        <>
-                          {t.contact.submit}
-                          {isRTL ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
-                        </>
-                      )}
-                    </button>
-                  </form>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#101828] text-slate-400 py-12 sm:py-16 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-10 sm:mb-12">
-            <div className="md:col-span-2">
-              <a href="#" className="flex items-center gap-3 mb-4 focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded-lg p-1 w-fit">
-                <BrandLogo className="w-9 h-9 shrink-0" isDark={true} />
-                <span className="font-heading font-black text-xl text-white">
-                  {lang === "ar" ? "شغال" : "Shaghal"}
-                </span>
-              </a>
-              <p className="text-sm text-slate-400 leading-relaxed max-w-sm">{t.footer.tagline}</p>
-            </div>
-
-            <div>
-              <h4 className="font-heading font-bold text-white text-sm uppercase tracking-wider mb-4">
-                {t.footer.links}
-              </h4>
-              <ul className="space-y-1">
-                {[["#hero", t.nav.home], ["#about", t.nav.about], ["#services", t.nav.services], ["#work", t.nav.work]].map(([href, label]) => (
-                  <li key={href}><a href={href} className="flex items-center py-2 text-sm hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded">{label}</a></li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-heading font-bold text-white text-sm uppercase tracking-wider mb-4">
-                {t.footer.contact}
-              </h4>
-              <ul className="space-y-3 text-sm">
-                <li>
-                  <button onClick={handleCopyEmail} className="hover:text-[var(--brand)] transition-colors focus-visible:ring-2 focus-visible:ring-[var(--brand)] rounded flex items-center gap-2.5">
-                    <Mail className="w-4 h-4 text-[var(--brand)] shrink-0" />
-                    <span>{EMAIL}</span>
-                  </button>
-                </li>
-                <li>
-                  <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#25D366] transition-colors flex items-center gap-2.5 text-slate-300">
-                    <div className="w-4 h-4 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
-                      <svg className="w-2.5 h-2.5 text-white fill-current" viewBox="0 0 24 24">
-                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                      </svg>
-                    </div>
-                    <span>واتساب: <span className="dir-ltr inline-block font-mono font-bold text-white">{PHONE}</span></span>
-                  </a>
-                </li>
-                <li className="flex items-center gap-2.5 text-slate-400">
-                  <MapPin className="w-4 h-4 text-[var(--brand)] shrink-0" />
-                  <span>{t.contact.location}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
-            {t.footer.rights}
-          </div>
+        <div className="container-x py-5 border-t border-[var(--line)] text-xs text-[var(--muted)]">
+          {t.footer.rights}
         </div>
       </footer>
 
-      {/* ── FLOATING WHATSAPP BUTTON ──────────────────────────────────────── */}
-      <a
-        href={`https://wa.me/201033844561?text=${encodeURIComponent(isRTL ? "مرحباً، أود الاستفسار عن أنظمة شغال المخصصة." : "Hello, I would like to inquire about Shaghal digital systems.")}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed z-50 bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#25D366] group"
-        title="WhatsApp: 01033844561"
-        aria-label="Contact on WhatsApp"
-      >
-        <svg className="w-7 h-7 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-        </svg>
+      {/* ── WhatsApp float ─────────────────────────────────────────────── */}
+      <a href={whatsappLink(t.waFloat)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
+        className="fixed z-40 bottom-5 end-5 sm:bottom-7 sm:end-7 w-14 h-14 rounded-full grid place-items-center bg-[#25D366] text-white shadow-[0_14px_30px_-10px_rgba(37,211,102,.7)] hover:scale-105 active:scale-95 transition-transform">
+        <WhatsAppIcon className="w-7 h-7" />
       </a>
 
-      {/* ── BACK TO TOP ───────────────────────────────────────────────────── */}
+      {/* ── Toast ──────────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {showTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="back-to-top-btn fixed z-50 bottom-24 right-6 sm:bottom-28 sm:right-8 w-12 h-12 rounded-full brand-green-gradient
-              text-white shadow-2xl hover:scale-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[var(--brand)] flex items-center justify-center"
-            title={t.float.top}
-            aria-label="Back to top">
-            <ArrowRight className="w-5 h-5 -rotate-90" />
-          </motion.button>
+        {toast && (
+          <motion.div role="status"
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
+            className="fixed z-[70] bottom-6 inset-x-0 mx-auto w-fit max-w-[90vw] px-5 py-3 rounded-full bg-[#0F2A46] text-white text-sm font-bold shadow-xl flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#8BC8E7]" />{toast}
+          </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* ── Screenshot gallery ─────────────────────────────────────────── */}
+      <AnimatePresence>
+        {gallery && (() => {
+          const shots = shotsFor(gallery.key);
+          const cur = shots[gallery.idx];
+          const sys = t.systems.find(s => s.key === gallery.key);
+          const PrevIcon = isRTL ? ChevronRight : ChevronLeft;
+          const NextIcon = isRTL ? ChevronLeft : ChevronRight;
+          return (
+            <motion.div className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              role="dialog" aria-modal="true" aria-label={sys?.title}>
+              <div className="absolute inset-0 bg-[#06121F]/85 backdrop-blur-sm" onClick={() => setGallery(null)} />
+              <motion.div initial={{ scale: 0.97, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.97, y: 10 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="relative w-full max-w-6xl">
+                <div className="flex items-center justify-between gap-3 mb-3 text-white">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#8BC8E7]">{sys?.title}</p>
+                    <p className="font-bold truncate">{isRTL ? cur.ar : cur.en}
+                      <span className="ms-2 text-xs font-semibold text-white/60" dir="ltr">{gallery.idx + 1} / {shots.length}</span>
+                    </p>
+                  </div>
+                  <button onClick={() => setGallery(null)} aria-label={t.gallery.close}
+                    className="w-11 h-11 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 shrink-0">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="relative rounded-2xl overflow-hidden bg-white shadow-2xl">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div key={gallery.idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                      <Shot shot={cur} alt={isRTL ? cur.ar : cur.en} eager fill={false} className="max-h-[72vh] object-contain" />
+                    </motion.div>
+                  </AnimatePresence>
+                  <button onClick={() => step(-1)} aria-label={t.gallery.prev}
+                    className="absolute top-1/2 -translate-y-1/2 start-3 w-11 h-11 grid place-items-center rounded-full bg-[#0F2A46]/75 text-white hover:bg-[#0F2A46]">
+                    <PrevIcon className="w-5 h-5" />
+                  </button>
+                  <button onClick={() => step(1)} aria-label={t.gallery.next}
+                    className="absolute top-1/2 -translate-y-1/2 end-3 w-11 h-11 grid place-items-center rounded-full bg-[#0F2A46]/75 text-white hover:bg-[#0F2A46]">
+                    <NextIcon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  {shots.map((s, k) => (
+                    <button key={k} onClick={() => setGallery(g => ({ ...g, idx: k }))}
+                      aria-label={isRTL ? s.ar : s.en} aria-current={k === gallery.idx}
+                      className={`shrink-0 w-24 sm:w-28 rounded-lg overflow-hidden border-2 transition-all ${
+                        k === gallery.idx ? "border-[#8BC8E7] opacity-100" : "border-transparent opacity-50 hover:opacity-90"
+                      }`}>
+                      <div className="aspect-[1024/466] overflow-hidden bg-white"><Shot shot={s} alt="" /></div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );
