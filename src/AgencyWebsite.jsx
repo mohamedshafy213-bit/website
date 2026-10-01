@@ -410,7 +410,17 @@ export default function AgencyWebsite() {
                     );
                   })}
                 </div>
-                <BarsGraphic id="hero-bars" className="hidden sm:block h-20 lg:h-24 w-auto shrink-0 pointer-events-none drop-shadow-[0_12px_20px_rgba(37,125,182,.25)]" />
+                <div className="hidden sm:flex items-end gap-2.5 shrink-0 pointer-events-none" aria-hidden="true">
+                  <BarsGraphic id="hero-bars" className="h-20 lg:h-24 w-auto shrink-0 drop-shadow-[0_12px_20px_rgba(37,125,182,.25)]" />
+                  <motion.img
+                    src={isRTL ? "/brand/shaghal-word-ar.svg" : "/brand/shaghal-word-en.svg"}
+                    alt="" draggable={false}
+                    className="h-8 lg:h-9 w-auto max-w-none shrink-0 mb-0.5"
+                    initial={reduce ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.75, ease: EASE }}
+                  />
+                </div>
                 </div>
 
                 <BrowserFrame className="relative z-10">
@@ -670,8 +680,8 @@ export default function AgencyWebsite() {
         {/* ── CONTACT ──────────────────────────────────────────────────── */}
         <section id="contact" className="section pt-0">
           <div className="container-x">
-            <div className="card !rounded-[32px] overflow-hidden grid lg:grid-cols-12">
-              <div className="lg:col-span-5 p-8 sm:p-10 lg:p-12 relative" style={{ background: "var(--grad-soft)" }}>
+            <div className="card !rounded-[28px] sm:!rounded-[32px] overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+              <div className="min-w-0 lg:col-span-5 p-6 sm:p-10 lg:p-12 relative" style={{ background: "var(--grad-soft)" }}>
                 <span className="eyebrow mb-4">{t.contact.eyebrow}</span>
                 <h2 className="font-display font-extrabold text-3xl sm:text-4xl leading-tight">{t.contact.title}</h2>
                 <p className="mt-4 text-[var(--muted)] leading-relaxed">{t.contact.desc}</p>
@@ -692,7 +702,7 @@ export default function AgencyWebsite() {
                       <span className="w-10 h-10 rounded-xl grid place-items-center bg-[var(--surface-2)] text-[var(--accent)] shrink-0"><Mail className="w-5 h-5" /></span>
                       <a href={`mailto:${EMAIL}`} className="min-w-0 flex-1">
                         <span className="block text-xs font-bold text-[var(--muted)]">{t.contact.emailLabel}</span>
-                        <span className="block font-bold truncate" dir="ltr">{EMAIL}</span>
+                        <span className="block font-bold text-sm sm:text-base [overflow-wrap:anywhere]" dir="ltr">{EMAIL.split("@")[0]}@<wbr />{EMAIL.split("@")[1]}</span>
                       </a>
                       <button type="button" onClick={copyEmail} aria-label={t.contact.copy}
                         className="w-9 h-9 grid place-items-center rounded-lg text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--surface)]">
@@ -706,7 +716,7 @@ export default function AgencyWebsite() {
                 </ul>
               </div>
 
-              <form onSubmit={submit} className="lg:col-span-7 p-8 sm:p-10 lg:p-12 grid sm:grid-cols-2 gap-5">
+              <form onSubmit={submit} className="min-w-0 lg:col-span-7 p-6 sm:p-10 lg:p-12 grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <label className="block">
                   <span className="block mb-2 text-sm font-bold">{t.contact.name}</span>
                   <input className="field" required autoComplete="name" value={form.name} placeholder={t.contact.namePh}
