@@ -101,64 +101,45 @@ function sdBar(u, v, barCx, circleCy, circleR, barX, barW, barY, barH) {
   return Math.min(dCirc, dRec);
 }
 
-// Draw the authentic Shaghal Logo onto icon canvas (White squircle + 2 Navy bars + 1 Emerald bar)
+// Draw the authentic Shaghal Logo onto transparent canvas (matching clinics.shaghal.net/favicon.svg)
 function drawShaghalLogo(u, v, px, py, width, height) {
   // Antialiasing radius in normalized units
   const aa = 1.4 / width;
 
-  // Background: Clean high-contrast white squircle (#FFFFFF)
-  const pad = 0.035;
-  const squircleRad = 0.22;
-  const dSquircle = sdRoundedBox(u, v, pad, pad, 1 - 2 * pad, 1 - 2 * pad, squircleRad);
+  // Exact geometry and colors from https://clinics.shaghal.net/favicon.svg
+  // viewBox="30 0 82 98"
+  // Bar 1 (Left: #8AC7E7): cx=46, cy=39, r=9.5; rect: x=36.5, y=54.5, w=19, h=39
+  // Bar 2 (Middle: #5EA6D1): cx=70.5, cy=24, r=9.5; rect: x=61, y=39.5, w=19, h=54
+  // Bar 3 (Right: #247DB6): cx=95, cy=10, r=9.5; rect: x=85.5, y=24.5, w=19, h=69
 
-  if (dSquircle > aa) {
-    return [0, 0, 0, 0]; // Transparent outside squircle
-  }
+  const scale = 0.90 / 98; // 5% padding around canvas
+  const toU = (x) => 0.5 + (x - 71) * scale;
+  const toV = (y) => 0.5 + (y - 49) * scale;
+  const toDim = (d) => d * scale;
 
-  // Pure clean white background (#FFFFFF) with gentle anti-aliased edge
-  let bgR = 255, bgG = 255, bgB = 255;
-  let bgA = 255;
-  if (dSquircle > -aa) {
-    const edgeAlpha = Math.min(1, Math.max(0, -dSquircle / aa + 0.5));
-    bgA = Math.round(255 * edgeAlpha);
-  }
+  const d1 = sdBar(u, v, toU(46), toV(39), toDim(9.5), toU(36.5), toDim(19), toV(54.5), toDim(39));
+  const d2 = sdBar(u, v, toU(70.5), toV(24), toDim(9.5), toU(61), toDim(19), toV(39.5), toDim(54));
+  const d3 = sdBar(u, v, toU(95), toV(10), toDim(9.5), toU(85.5), toDim(19), toV(24.5), toDim(69));
 
-  // 3 rising bars aligned at the bottom (y = 0.79):
-  // Bar 1 (Left / Shortest: Light Blue #8BC8E7)
-  const d1 = sdBar(u, v, 0.285, 0.39, 0.060, 0.225, 0.120, 0.46, 0.33);
-  // Bar 2 (Middle / Medium: Brand Azure Blue #257DB6)
-  const d2 = sdBar(u, v, 0.500, 0.31, 0.068, 0.435, 0.130, 0.39, 0.40);
-  // Bar 3 (Right / Tallest: Deep Brand Navy #153D68)
-  const d3 = sdBar(u, v, 0.715, 0.23, 0.076, 0.642, 0.146, 0.32, 0.47);
+  let r = 0, g = 0, b = 0, a = 0;
 
-  let r = bgR, g = bgG, b = bgB, a = bgA;
+  const blend = (d, barR, barG, barB) => {
+    if (d < aa) {
+      const alpha = Math.min(1, Math.max(0, -d / aa + 0.5));
+      const curA = a / 255;
+      const outA = alpha + curA * (1 - alpha);
+      if (outA > 0) {
+        r = Math.round((barR * alpha + r * curA * (1 - alpha)) / outA);
+        g = Math.round((barG * alpha + g * curA * (1 - alpha)) / outA);
+        b = Math.round((barB * alpha + b * curA * (1 - alpha)) / outA);
+        a = Math.round(outA * 255);
+      }
+    }
+  };
 
-  // Render Bar 1 (Shortest / Brand Light Blue #8BC8E7)
-  if (d1 < aa) {
-    const alpha = Math.min(1, Math.max(0, -d1 / aa + 0.5));
-    const barR = 139, barG = 200, barB = 231; // #8BC8E7
-    r = Math.round(barR * alpha + r * (1 - alpha));
-    g = Math.round(barG * alpha + g * (1 - alpha));
-    b = Math.round(barB * alpha + b * (1 - alpha));
-  }
-
-  // Render Bar 2 (Middle / Brand Azure Blue #257DB6)
-  if (d2 < aa) {
-    const alpha = Math.min(1, Math.max(0, -d2 / aa + 0.5));
-    const barR = 37, barG = 125, barB = 182; // #257DB6
-    r = Math.round(barR * alpha + r * (1 - alpha));
-    g = Math.round(barG * alpha + g * (1 - alpha));
-    b = Math.round(barB * alpha + b * (1 - alpha));
-  }
-
-  // Render Bar 3 (Tallest / Deep Brand Navy #153D68)
-  if (d3 < aa) {
-    const alpha = Math.min(1, Math.max(0, -d3 / aa + 0.5));
-    const barR = 21, barG = 61, barB = 104; // #153D68
-    r = Math.round(barR * alpha + r * (1 - alpha));
-    g = Math.round(barG * alpha + g * (1 - alpha));
-    b = Math.round(barB * alpha + b * (1 - alpha));
-  }
+  blend(d1, 138, 199, 231); // #8AC7E7
+  blend(d2, 94, 166, 209);  // #5EA6D1
+  blend(d3, 36, 125, 182);  // #247DB6
 
   return [r, g, b, a];
 }
