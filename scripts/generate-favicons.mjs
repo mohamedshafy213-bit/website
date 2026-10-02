@@ -124,37 +124,37 @@ function drawShaghalLogo(u, v, px, py, width, height) {
   }
 
   // 3 rising bars aligned at the bottom (y = 0.79):
-  // Bar 1 (Left / Shortest: Navy #101828)
+  // Bar 1 (Left / Shortest: Light Blue #8BC8E7)
   const d1 = sdBar(u, v, 0.285, 0.39, 0.060, 0.225, 0.120, 0.46, 0.33);
-  // Bar 2 (Middle / Medium: Deep Navy #0D2240)
+  // Bar 2 (Middle / Medium: Brand Azure Blue #257DB6)
   const d2 = sdBar(u, v, 0.500, 0.31, 0.068, 0.435, 0.130, 0.39, 0.40);
-  // Bar 3 (Right / Tallest: Signature Emerald Green #21C87A)
+  // Bar 3 (Right / Tallest: Deep Brand Navy #153D68)
   const d3 = sdBar(u, v, 0.715, 0.23, 0.076, 0.642, 0.146, 0.32, 0.47);
 
   let r = bgR, g = bgG, b = bgB, a = bgA;
 
-  // Render Bar 1 (Shortest / Brand Dark Navy #101828)
+  // Render Bar 1 (Shortest / Brand Light Blue #8BC8E7)
   if (d1 < aa) {
     const alpha = Math.min(1, Math.max(0, -d1 / aa + 0.5));
-    const barR = 16, barG = 24, barB = 40; // #101828
+    const barR = 139, barG = 200, barB = 231; // #8BC8E7
     r = Math.round(barR * alpha + r * (1 - alpha));
     g = Math.round(barG * alpha + g * (1 - alpha));
     b = Math.round(barB * alpha + b * (1 - alpha));
   }
 
-  // Render Bar 2 (Middle / Deep Tech Navy #0D2240)
+  // Render Bar 2 (Middle / Brand Azure Blue #257DB6)
   if (d2 < aa) {
     const alpha = Math.min(1, Math.max(0, -d2 / aa + 0.5));
-    const barR = 13, barG = 34, barB = 64; // #0D2240
+    const barR = 37, barG = 125, barB = 182; // #257DB6
     r = Math.round(barR * alpha + r * (1 - alpha));
     g = Math.round(barG * alpha + g * (1 - alpha));
     b = Math.round(barB * alpha + b * (1 - alpha));
   }
 
-  // Render Bar 3 (Tallest / Signature Emerald Green #21C87A)
+  // Render Bar 3 (Tallest / Deep Brand Navy #153D68)
   if (d3 < aa) {
     const alpha = Math.min(1, Math.max(0, -d3 / aa + 0.5));
-    const barR = 33, barG = 200, barB = 122; // #21C87A
+    const barR = 21, barG = 61, barB = 104; // #153D68
     r = Math.round(barR * alpha + r * (1 - alpha));
     g = Math.round(barG * alpha + g * (1 - alpha));
     b = Math.round(barB * alpha + b * (1 - alpha));
