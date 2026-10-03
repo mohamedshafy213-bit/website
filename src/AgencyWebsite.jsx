@@ -131,7 +131,7 @@ export default function AgencyWebsite() {
   const [lang, setLang] = useState(() => {
     const q = new URLSearchParams(window.location.search).get("lang");
     if (q === "ar" || q === "en") return q;
-    try { return localStorage.getItem("Aura_lang") || "ar"; } catch { return "ar"; }
+    try { return localStorage.getItem("Aura_lang") || "en"; } catch { return "en"; }
   });
   // Saved choice, otherwise follow the OS setting.
   const [dark, setDark] = useState(() => {
@@ -139,7 +139,7 @@ export default function AgencyWebsite() {
       const saved = localStorage.getItem("Aura_theme");
       if (saved) return saved === "dark";
     } catch {}
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+    return false;
   });
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
