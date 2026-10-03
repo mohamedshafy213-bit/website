@@ -73,7 +73,7 @@
     (function () {
       try {
         var s = localStorage.getItem('Aura_theme');
-        var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var d = s ? s === 'dark' : false;
         if (d) document.documentElement.classList.add('dark');
       } catch (e) { }
     })();
@@ -3617,10 +3617,10 @@
     (function () {
       var el = document.getElementById('bi');
       if (!el) return;
-      var lang = 'ar';
+      var lang = 'en';
       try {
         var q = new URLSearchParams(location.search).get('lang');
-        lang = q === 'en' || q === 'ar' ? q : (localStorage.getItem('Aura_lang') || 'ar');
+        lang = q === 'en' || q === 'ar' ? q : (localStorage.getItem('Aura_lang') || 'en');
       } catch (e) { }
       el.setAttribute('data-lang', lang === 'en' ? 'en' : 'ar');
       if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); return; }

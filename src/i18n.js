@@ -186,6 +186,7 @@ export const COPY = {
         { q: "فيه تدريب على النظام؟", a: "أيوه — جلسات تدريب لفريقك ومديرينك، مع فيديوهات شرح ودليل استخدام مكتوب." },
         { q: "بيدعم أكتر من فرع؟", a: "أيوه، تعدد الفروع متصمم من البداية مع تزامن لحظي للبيانات والأسعار والمخزون." },
         { q: "أتابع مشروعي إزاي وقت التنفيذ؟", a: "بتوصلك دعوة للوحة مشروع خاصة بيك، تشوف فيها كل مرحلة وتعلّق وتوافق قبل ما نكمّل." },
+        { q: "لو النظام جاهز عندكم، هتسلموه بسرعة؟", a: "أيوه. لو النظام اللي محتاجه هو نفس نظام سبق وبنيناه واتجرّب، نقدر نسلمهولك ونظبطه على شغلك في وقت قصير جداً. لكن لو عايز نظام مخصص من الصفر أو فيه متطلبات جديدة مختلفة، ده بياخد وقته عشان نبنيه صح ونسلمك شغل متين." },
       ],
     },
 
@@ -349,6 +350,7 @@ export const COPY = {
         { q: "Is training included?", a: "Yes — training sessions for your staff and managers, plus walkthrough videos and a written guide." },
         { q: "Does it support multiple branches?", a: "Yes. Multi-branch is designed in from day one, with live sync of data, prices and stock." },
         { q: "How do I follow progress?", a: "You get an invite to your own project dashboard to see every phase, comment, and approve before we move on." },
+        { q: "Can you deliver faster if the system already exists?", a: "Yes. If the system you need is one we've already built and tested, we can set it up and tailor it to your business very quickly. But if you need something built from scratch or with new requirements, it takes the proper time to build it right and deliver solid work." },
       ],
     },
 
